@@ -1,54 +1,40 @@
 ﻿"""fetch_network_log 실제 구현 - Suricata eve.json을 읽어온다 (S3 또는 로컬 파일).
 
-*** 다른 3개 tool과 다른 점: eve.json은 이미 진짜 JSON이다 ***
-audit/web/auth는 raw 텍스트라 파싱을 최소화했지만, Suricata eve.json은 원래부터
-"한 줄 = JSON 이벤트 하나"인 정형 포맷이다. 그래서 json.loads()로 파싱하는 것 자체는
-"정보를 지어내는 해석"이 아니라 이미 있는 구조를 그대로 읽는 것이라 문제없이 한다.
-다만 alert.signature가 실제로 뭘 의미하는지, src_ip가 위협인지 같은 "의미 해석"은
-여기서 하지 않고 LLM에게 그대로 넘긴다 (같은 원칙 유지).
+파일명 == 함수명 규칙에 따라 agent/tools/real/fetch_network_log.py 안의
+fetch_network_log 함수만 있으면 agent/tools/registry.py의 build_default_registry()가
+자동으로 이 함수를 mock_tools.py 대신 사용한다.
 
-필요 환경변수 (.env에 추가):
-  AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY / AWS_DEFAULT_REGION
-  NETWORK_LOG_BUCKET (기본값: ogwanwan-shop-bucket)
+*** 2026-09-14 업데이트: 팀원이 만든 독립 배포용 fetch_network_log.py에서
+    핵심 필터링 로직을 뽑아 parsers/network_parser.py로 만들고 그걸 감쌌다 ***
+audit/web/auth와 같은 패턴: 파싱/필터링 로직은 팀원이 만든 걸 기반으로 하고
+(parsers/network_parser.py), 이 파일은 S3/로컬 소스 선택 + 우리 tool 인터페이스
+(args dict → {count, summary, records})만 담당한다.
 
-*** 로컬 테스트 모드 ***
-.env에 NETWORK_LOG_LOCAL_PATH=sample_network.log 넣어두면 S3 대신 그 파일을 읽는다.
+원본과 달리 direction(internal/outbound/inbound) 계산은 안 한다 — 자세한 이유는
+parsers/network_parser.py 상단 주석 참고 (호스트 IP 사전 등록 단계가 우리
+시스템엔 없음).
+
+*** limit/offset 페이지네이션 채택 (auth와 동일한 이유) ***
+
+필요 환경변수: AWS_ACCESS_KEY_ID 등 + NETWORK_LOG_BUCKET (기본값 ogwanwan-shop-bucket)
+로컬 테스트: .env에 NETWORK_LOG_LOCAL_PATH=sample_network.log
 """
 
 from __future__ import annotations
 
-import json
 import os
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from datetime import datetime
+from typing import Any, Dict, List
 
-from ._s3_common import list_and_read_text, parse_iso
+from ..parsers.network_parser import parse_network_events
+from ._s3_common import daterange, list_and_read_text, parse_iso
 
 DEFAULT_BUCKET = "ogwanwan-shop-bucket"
 S3_SOURCE_TYPE = "suricata"
+DEFAULT_LIMIT = 200
 
 
-def _extract_timestamp(record: Dict[str, Any]) -> Optional[datetime]:
-    value = record.get("timestamp")
-    if not isinstance(value, str):
-        return None
-    try:
-        # eve.json 타임스탬프 예: "2026-09-13T04:19:00.123456+0000"
-        cleaned = value.replace("+0000", "+00:00")
-        return datetime.fromisoformat(cleaned)
-    except ValueError:
-        return None
-
-
-def _matches_filters(record: Dict[str, Any], args: Dict[str, Any]) -> bool:
-    if "src_ip" in args and record.get("src_ip") != args["src_ip"]:
-        return False
-    if "event_type" in args and record.get("event_type") != args["event_type"]:
-        return False
-    return True
-
-
-def _read_source_text(host: str) -> "tuple[str, int, str]":
+def _read_source_text(host: str, start: datetime, end: datetime) -> "tuple[str, int, str]":
     local_path = os.environ.get("NETWORK_LOG_LOCAL_PATH")
     if local_path:
         if not os.path.exists(local_path):
@@ -61,42 +47,63 @@ def _read_source_text(host: str) -> "tuple[str, int, str]":
     bucket = os.environ.get("NETWORK_LOG_BUCKET", DEFAULT_BUCKET)
     s3 = boto3.client("s3", region_name=os.environ.get("AWS_DEFAULT_REGION"))
 
-    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-    prefix = f"raw/source_type={S3_SOURCE_TYPE}/host={host}/dt={today}/"
-    text, count = list_and_read_text(s3, bucket, prefix)
-    return text, count, f"s3://{bucket}/{prefix}"
+    chunks: List[str] = []
+    scanned_objects = 0
+    for date_str in daterange(start, end):
+        prefix = f"raw/source_type={S3_SOURCE_TYPE}/host={host}/dt={date_str}/"
+        text, count = list_and_read_text(s3, bucket, prefix)
+        scanned_objects += count
+        chunks.append(text)
+    return (
+        "\n".join(chunks),
+        scanned_objects,
+        f"s3://{bucket}/raw/source_type={S3_SOURCE_TYPE}/host={host}/",
+    )
 
 
 def fetch_network_log(args: Dict[str, Any]) -> Dict[str, Any]:
     host = args["host"]
     start = parse_iso(args["start_time"])
     end = parse_iso(args["end_time"])
+    limit = int(args.get("limit", DEFAULT_LIMIT))
+    offset = int(args.get("offset", 0))
 
-    text, scanned_objects, source_label = _read_source_text(host)
+    text, scanned_objects, source_label = _read_source_text(host, start, end)
 
-    matched: List[Dict[str, Any]] = []
-    for line in text.splitlines():
-        line = line.strip()
-        if not line:
-            continue
-        try:
-            record = json.loads(line)
-        except json.JSONDecodeError:
-            continue
+    all_events = parse_network_events(
+        text,
+        time_window=(start, end),
+        src_ip=args.get("src_ip"),
+        dst_ip=args.get("dst_ip"),
+        src_port=args.get("src_port"),
+        dst_port=args.get("dst_port"),
+        protocol=args.get("protocol"),
+        alert_only=bool(args.get("alert_only", False)),
+    )
 
-        ts = _extract_timestamp(record)
-        if ts is not None and not (start <= ts <= end):
-            continue
-        if not _matches_filters(record, args):
-            continue
-        matched.append(record)
+    total_matched = len(all_events)
+    page = all_events[offset : offset + limit]
+    has_more = (offset + limit) < total_matched
 
     if scanned_objects == 0:
-        summary = f"{source_label} 에서 데이터를 찾지 못했습니다. host/경로를 확인하세요."
+        summary = (
+            f"{source_label} 에서 {start.date()}~{end.date()} 구간에 데이터를 찾지 못했습니다. "
+            "host 이름 또는 로컬 파일 경로가 맞는지 확인하세요."
+        )
     else:
+        page_desc = f"{offset}~{offset + len(page) - 1}번째" if page else "0건"
+        more_desc = f"더 있음 (next_offset={offset + limit})" if has_more else "더 없음"
         summary = (
             f"{host}의 {start.isoformat()}~{end.isoformat()} 구간에서 ({source_label}) "
-            f"조건에 맞는 네트워크 이벤트 {len(matched)}건 확인"
+            f"조건에 맞는 네트워크 이벤트 총 {total_matched}건 중 {page_desc} {len(page)}건 반환. "
+            f"({more_desc})"
         )
 
-    return {"count": len(matched), "summary": summary, "records": matched}
+    return {
+        "count": len(page),
+        "summary": summary,
+        "records": page,
+        "total_matched": total_matched,
+        "has_more": has_more,
+        "next_offset": offset + limit if has_more else None,
+    }

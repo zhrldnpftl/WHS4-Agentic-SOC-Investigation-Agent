@@ -7,11 +7,18 @@ agent/tools/real/fetch_*.py들은 "이미 seed가 있고, 그 seed를 검증하�
 web/auth/audit/network 로그를 필터 없이 통째로 긁어와서 LLM(seed_generation.py)에게
 "여기서 수상한 거 있어?"라고 물어볼 재료를 만든다.
 
-*** S3 raw 데이터 실측 결과 반영 (2026-09-13) ***
-auditd 로그는 NDJSON이 아니라 정규화 이전의 raw 텍스트(멀티라인 구조)로 확인됐다.
-그래서 audit 소스는 fetch_audit_log.py의 group_raw_audit_events()를 그대로 재사용해서
-같은 방식(최소한의 그룹핑만, 필드 해석은 LLM에게)으로 처리한다. web/auth/network는
-아직 실제 데이터로 검증되지 않았으므로, 일단 원시 텍스트를 줄 단위로만 넘기는 보수적인
+*** S3 raw 데이터 실측 결과 반영 (2026-09-13/14) ***
+auditd 로그는 NDJSON이 아니라 정규화 이전의 raw 텍스트(ENRICHED 포맷 + 멀티라인
+구조)로 확인됐다. audit 소스는 agent/tools/parsers/audit_parser.py의
+parse_audit_events()(팀원이 실측 기반으로 만든 정식 파서)를 재사용해서
+uid/euid/session_type/exec_args까지 구조화된 이벤트로 만든다. web 소스는
+처음엔 web tool 담당 팀원의 apache_parser.py(공백 구분 14필드)를 썼는데, 실제
+sample_web.log가 그 형식이 아니라 한 줄 = JSON 객체인 nginx JSON 로그로
+확인돼서(2026-09-14) agent/tools/parsers/nginx_json_parser.py(실측 기반으로
+새로 작성)로 교체했다. auth 소스도 agent/tools/parsers/auth_parser.py의
+parse_auth_events()(auth tool 담당 팀원이 실제 auth.log로 만든 정식 파서)를
+재사용해서 ssh_login/sudo/pam 이벤트로 구조화한다. network는 아직 실제
+데이터로 검증되지 않았으므로, 일단 원시 텍스트를 줄 단위로만 넘기는 보수적인
 방식으로 처리한다 — 실제 포맷이 확인되면 그에 맞게 고치면 된다.
 
 *** 현재 한계 ***
@@ -31,8 +38,10 @@ import os
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
-from .tools.real._s3_common import daterange, list_and_read_text
-from .tools.real.fetch_audit_log import group_raw_audit_events
+from .tools.parsers.audit_parser import parse_audit_events
+from .tools.parsers.auth_parser import parse_auth_events
+from .tools.parsers.nginx_json_parser import nginx_ts_to_dt, parse_nginx_json_line
+from .tools.real._s3_common import daterange, list_and_read_text, parse_iso
 
 DEFAULT_BUCKET = "ogwanwan-shop-bucket"
 
@@ -54,15 +63,39 @@ LOCAL_PATH_ENV = {
 
 
 def _events_from_text(source_key: str, text: str) -> List[Dict[str, Any]]:
-    """소스 타입별로 raw 텍스트를 이벤트 단위 레코드로 최소 가공한다.
-    (구조화된 필드 추출은 하지 않는다 — 해석은 LLM 몫)
+    """소스 타입별로 raw 텍스트를 이벤트 단위 레코드로 가공한다.
     반환되는 각 이벤트는 내부 필터링용 "_ts"(datetime|None)를 포함한다 — 호출자가
     시간 범위로 거른 뒤 제거해야 한다.
     """
     if source_key == "audit":
-        return group_raw_audit_events(text)
+        events = parse_audit_events(text)  # 필터 없이 전부 — 시간 필터는 이 함수 밖에서 적용
+        for e in events:
+            ts_str = e.get("timestamp")
+            e["_ts"] = parse_iso(ts_str) if ts_str else None
+        return events
 
-    # web/auth/network: 실제 포맷 미확인 상태라 우선 줄 단위로만 넘긴다.
+    if source_key == "web":
+        events = []
+        for line in text.split("\n"):  # JSON 한 줄씩이라 split("\n")로 통일
+            if not line.strip():
+                continue
+            event = parse_nginx_json_line(line)
+            if event is None:
+                continue
+            dt = nginx_ts_to_dt(event.get("timestamp"))
+            event["_ts"] = dt
+            events.append(event)
+        return events
+
+    if source_key == "auth":
+        # syslog는 연도가 없어서 "지금"의 연도를 기준으로 삼는다 (연말/연초 경계 한계 있음).
+        events = parse_auth_events(text, reference_year=datetime.now(timezone.utc).year)
+        for e in events:
+            ts_str = e.get("timestamp")
+            e["_ts"] = parse_iso(ts_str) if ts_str else None
+        return events
+
+    # network: 실제 포맷 미확인 상태라 우선 줄 단위로만 넘긴다.
     # 아직 타임스탬프를 뽑아내는 규칙이 없어 _ts=None으로 두고, 시간 필터를 건너뛴다
     # (실제 포맷이 확인되면 여기서 timestamp를 파싱해 채우면 된다).
     return [
@@ -125,11 +158,19 @@ def fetch_recent_raw_logs(
     all_records: List[Dict[str, Any]] = []
 
     for source_key in source_types:
+        # 로컬 샘플 모드(*_LOCAL_PATH)일 땐 "진짜 지금 기준 최근 N분" 필터를 끈다.
+        # 샘플 로그는 실제 과거 시각(예: 2026-09-13 새벽)을 그대로 담고 있어서,
+        # 이 필터를 그대로 적용하면 "지금(실행 시점)으로부터 10분 이내"가 아니라서
+        # audit/web/auth가 실제 타임스탬프를 갖게 된 뒤로 전부 걸러져 버린다.
+        # 로컬 모드에선 RAW_LOG_LOCAL_MAX_LINES(마지막 N줄)가 이미 "관심 구간"을
+        # 정하는 역할을 하므로, 절대 시각 필터는 S3(실운영) 모드에서만 의미가 있다.
+        is_local_mode = bool(os.environ.get(LOCAL_PATH_ENV[source_key]))
+
         s3_source_type = SOURCE_TYPES.get(source_key, source_key)
         text = _read_layer_text(source_key, s3_source_type, host, bucket, start, end)
         for record in _events_from_text(source_key, text):
             ts = record.pop("_ts", None)
-            if ts is not None and not (start <= ts <= end):
+            if not is_local_mode and ts is not None and not (start <= ts <= end):
                 continue
             record["_source_type"] = source_key
             all_records.append(record)

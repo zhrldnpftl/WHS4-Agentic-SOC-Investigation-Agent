@@ -9,6 +9,7 @@ loop.py는 이 클래스의 .reason(state, tool_registry) 인터페이스에만 
 from __future__ import annotations
 
 import json
+import re
 from typing import Any, Dict, Optional
 
 from .prompts import build_system_prompt, build_user_prompt
@@ -62,6 +63,13 @@ class ClaudeClient:
         try:
             return json.loads(cleaned)
         except json.JSONDecodeError as exc:
+            # trailing comma(",]"/",}") 같은 사소한 문법 오류만 고쳐서 한 번 더 시도한다.
+            fixed = re.sub(r",\s*([\]}])", r"\1", cleaned)
+            if fixed != cleaned:
+                try:
+                    return json.loads(fixed)
+                except json.JSONDecodeError:
+                    pass
             raise ClaudeDecisionError(
                 f"LLM 응답을 JSON으로 파싱하지 못했습니다: {exc}\n원본 응답:\n{text}"
             ) from exc

@@ -13,6 +13,20 @@ from typing import Any, Dict, List
 from agent.loop import InvestigationAgent
 from agent.report import format_text_report
 from agent.tools import ToolRegistry, ToolSpec, build_default_registry
+from agent.tools.mock_tools import MOCK_HANDLERS
+
+
+def _mock_only_registry() -> ToolRegistry:
+    """항상 목업 6종만 등록한 레지스트리를 만든다.
+
+    agent/tools/real/ 폴더에 실제 구현이 추가돼도(자동 탐색 대상이라도), 이 테스트는
+    FakeLLMClient의 스크립트된 각본대로만 진행되는 순수 단위 테스트라 실제 tool
+    코드가 끼어들면 안 된다 — 특히 S3를 보는 real 구현이 잡히면 로컬 환경변수/AWS
+    자격 증명 상태에 따라 테스트가 네트워크를 타거나 결과가 흔들릴 수 있다.
+    handlers=MOCK_HANDLERS로 명시하면 real/ 자동 탐색보다 우선순위가 높아서
+    (build_default_registry 우선순위 1번) 항상 목업만 쓰인다.
+    """
+    return build_default_registry(handlers=MOCK_HANDLERS)
 
 
 class FakeLLMClient:
@@ -120,7 +134,7 @@ def test_happy_path_terminates_with_threat_confirmed() -> None:
     """문서 7번 시나리오와 동일하게 3회 도구 호출 후 THREAT_CONFIRMED로 종료되는지 확인."""
     decisions = _happy_path_decisions()
     llm = FakeLLMClient(decisions)
-    registry = build_default_registry()  # 목업 도구 사용
+    registry = _mock_only_registry()
     agent = InvestigationAgent(llm, registry, max_calls=8, confidence_threshold=0.85)
 
     result = agent.run(SEED)
@@ -138,7 +152,7 @@ def test_happy_path_terminates_with_threat_confirmed() -> None:
 def test_format_text_report_renders_expected_sections() -> None:
     """format_text_report()가 사용자 예시 포맷(E1.., Timeline, Provisional Conclusion 등)대로 나오는지 확인."""
     llm = FakeLLMClient(_happy_path_decisions())
-    registry = build_default_registry()
+    registry = _mock_only_registry()
     agent = InvestigationAgent(llm, registry, max_calls=8, confidence_threshold=0.85)
 
     result = agent.run(SEED)
@@ -167,7 +181,7 @@ def test_duplicate_tool_call_is_skipped() -> None:
         {"facts": [], "hypotheses": [], "unknowns": [], "new_evidence": [], "next_action": "terminate", "tool_call": None, "termination_reason": "no_more_evidence", "final_verdict": {"verdict": "INCONCLUSIVE", "confidence": 0.5, "severity": "LOW", "attack_type": "unknown", "affected_systems": []}, "investigation_notes": []},
     ]
     llm = FakeLLMClient(decisions)
-    registry = build_default_registry()
+    registry = _mock_only_registry()
     agent = InvestigationAgent(llm, registry, max_calls=8, confidence_threshold=0.85)
 
     result = agent.run(SEED)
@@ -190,7 +204,7 @@ def test_max_call_forces_termination() -> None:
 
     decisions = [make_call(i) for i in range(20)]  # 절대 terminate 하지 않음
     llm = FakeLLMClient(decisions)
-    registry = build_default_registry()
+    registry = _mock_only_registry()
     agent = InvestigationAgent(llm, registry, max_calls=3, confidence_threshold=0.85)
 
     result = agent.run(SEED)
@@ -257,7 +271,7 @@ def test_real_tool_auto_discovery() -> None:
         sys.modules.pop(module_name, None)
         importlib.invalidate_caches()
 
-        registry = build_default_registry()
+        registry = build_default_registry()  # 이 테스트는 자동 탐색 자체를 검증하는 거라 목업 고정 X
         result = registry.call("resolve_ip_geo", {"ip": "1.2.3.4"})
 
         assert result["summary"] == "REAL-TOOL-USED", "real/ 폴더의 실제 함수가 사용되어야 한다"

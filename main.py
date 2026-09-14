@@ -39,10 +39,9 @@ def main() -> None:
     host = os.environ.get("HOST", "web-01")
     minutes = int(os.environ.get("RAW_LOG_WINDOW_MINUTES", "10"))
 
-    # get_process_tree, resolve_ip_geo는 아직 실제 구현이 없어서, 목업이 실제 조사에
-    # 섞여드는 걸 막기 위해 지금은 아예 도구 목록에서 제외한다 (필요해지면 real/ 폴더에
-    # 구현 추가 후 이 exclude 목록에서 빼면 된다).
-    tool_registry = build_default_registry(exclude=["get_process_tree", "resolve_ip_geo"])
+    # resolve_ip_geo는 실제 구현은 있지만 지금 우선순위가 아니라서 제외해둔다.
+    # get_process_tree는 2026-09-14에 실제 구현 완성돼서 제외 목록에서 뺐다.
+    tool_registry = build_default_registry(exclude=["resolve_ip_geo"])
     llm_client = build_llm_client()
 
     results = run_investigation_pipeline(

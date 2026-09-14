@@ -4,23 +4,18 @@
 함수만 있으면 agent/tools/registry.py의 build_default_registry()가 자동으로 이 함수를
 mock_tools.py 대신 사용한다. (agent/tools/real/README.md 참고)
 
-*** 중요: S3 raw 데이터 실측 결과 반영 (2026-09-13) ***
-S3의 raw/source_type=auditd/host=<host>/dt=YYYY-MM-DD/ 아래 파일은 NDJSON이 아니라
-정규화 이전의 raw auditd 원본 그대로다 (type=SYSCALL/type=CWD/type=PATH/type=PROCTITLE가
-여러 줄에 걸쳐 하나의 이벤트를 이룸, EXECVE/PROCTITLE 값은 hex 인코딩). 인프라팀의
-정규화 파이프라인이 아직 이 데이터에 붙지 않은 상태로 확인됨(버킷에 raw/만 있고
-processed/ 등은 없음).
+*** 2026-09-13 업데이트: 팀원이 실측(EC2 audit.log 16,904건) 기반으로 만든
+    정식 파서(_audit_parser.py)로 교체 ***
+이전 버전은 "여러 줄을 사건 번호로 묶기만 하고, uid/session_type 같은 의미 해석은
+전부 LLM에게 넘긴다"는 최소 파싱 방침이었다. 그런데 실제 audit.log가
+ENRICHED 포맷(0x1d 구분자로 raw/enriched가 붙어있음)이라는 걸 팀원이 실측으로
+확인하고 정식 파서를 만들었고, 이게 uid/euid/session_type/exec_args/target_file
+까지 전부 구조화해서 뽑아낸다. 그래서 이제는 "많이 파싱해서 구조화된 필드로
+LLM에 준다" 쪽으로 설계를 바꿨다 — 이쪽이 실측 기반이라 더 정확하다.
 
-*** 설계 방향: 파싱은 최소한만, 해석은 에이전트(LLM)에게 ***
-이 tool은 uid/euid/session_type 같은 필드를 Python으로 직접 파싱해서 추출하지 않는다.
-그 대신:
-  1. 같은 이벤트에 속한 여러 줄(type=SYSCALL/CWD/PATH/PROCTITLE...)을 audit ID
-     (예: audit(1694246745.123:5001)의 ":5001" 부분)로만 묶고
-  2. 그 raw 텍스트 블록을 그대로 evidence 후보로 반환한다.
-uid/euid/session_type 등 의미 해석(예: "이건 www-data의 non-interactive 세션이다")은
-agent/prompts.py의 지시에 따라 LLM이 raw_block 텍스트를 직접 읽고 판단하게 한다.
-이렇게 하면 정규화 스키마가 나중에 바뀌거나, 인프라팀 정규화가 완성되기 전이라도
-이 tool을 고칠 필요가 없다. (scripts/local_e2e_test.py에서 검증한 것과 같은 설계)
+파싱 로직 자체(_audit_parser.py)는 raw_log_ingestion.py(수집 계층)도 같이 쓴다.
+이 파일은 그 파서를 감싸서 "S3/로컬 소스 선택 + 우리 tool 인터페이스
+(args dict → {count, summary, records})"만 담당한다.
 
 필요 환경변수 (.env에 추가):
   AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY / AWS_DEFAULT_REGION
@@ -29,78 +24,20 @@ agent/prompts.py의 지시에 따라 LLM이 raw_block 텍스트를 직접 읽고
 
 *** 로컬 테스트 모드 (AWS 키 없을 때) ***
 .env에 AUDIT_LOG_LOCAL_PATH=sample_audit.log 처럼 넣어두면, S3를 아예 안 보고
-그 로컬 파일을 읽어서 동일한 파싱/필터링 로직을 그대로 태운다. 이 tool 파일 자체가
-로컬/S3 양쪽 다 지원하므로, scripts/ 안에 별도 "가짜 tool"을 만들 필요가 없다 —
-AWS 키가 생기면 .env에서 이 줄만 지우면 원래 S3 경로로 돌아간다.
+그 로컬 파일을 읽어서 동일한 파싱/필터링 로직을 그대로 태운다. AWS 키가 생기면
+.env에서 이 줄만 지우면 원래 S3 경로로 돌아간다.
 """
 
 from __future__ import annotations
 
 import os
-import re
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from datetime import datetime
+from typing import Any, Dict, List
 
+from ..parsers.audit_parser import parse_audit_events
 from ._s3_common import daterange, list_and_read_text, parse_iso
 
 DEFAULT_BUCKET = "ogwanwan-shop-bucket"
-
-# audit(1694246745.123:5001) 형태에서 (초.밀리초, serial번호)를 뽑는다.
-_AUDIT_ID_RE = re.compile(r"audit\((\d+)\.(\d+):(\d+)\)")
-
-
-def group_raw_audit_events(text: str) -> List[Dict[str, Any]]:
-    """raw auditd 텍스트를 audit ID(serial) 기준으로 묶어 이벤트 단위 리스트로 만든다.
-
-    파싱은 "같은 이벤트인지 아닌지"와 "시간이 언제인지"까지만 한다. exe/comm/uid 같은
-    필드 값 해석은 절대 여기서 하지 않는다 — raw_block을 통째로 넘겨서 LLM이 읽게 한다.
-    """
-    groups: Dict[str, List[str]] = {}
-    order: List[str] = []
-
-    for line in text.splitlines():
-        match = _AUDIT_ID_RE.search(line)
-        if not match:
-            continue
-        audit_id = f"{match.group(1)}.{match.group(2)}:{match.group(3)}"
-        if audit_id not in groups:
-            groups[audit_id] = []
-            order.append(audit_id)
-        groups[audit_id].append(line)
-
-    events: List[Dict[str, Any]] = []
-    for audit_id in order:
-        epoch_str = audit_id.split(":")[0]
-        try:
-            ts = datetime.fromtimestamp(float(epoch_str), tz=timezone.utc)
-            time_iso: Optional[str] = ts.isoformat()
-        except (ValueError, OSError):
-            ts = None
-            time_iso = None
-
-        events.append(
-            {
-                "audit_id": audit_id,
-                "time": time_iso,
-                "raw_block": "\n".join(groups[audit_id]),
-                "_ts": ts,  # 내부 필터링용, 반환 직전에 제거
-            }
-        )
-    return events
-
-
-def _matches_filters(raw_block: str, args: Dict[str, Any]) -> bool:
-    """optional_args(pid/user/event_type)를 raw 텍스트에 대한 단순 문자열 검색으로 적용.
-    구조화된 필드 추출을 안 하므로 정교하진 않지만, "이 블록에 그 값이 등장하는가" 정도의
-    거친 필터로 충분하다 — 정확한 해석은 LLM이 evidence로 정리할 때 한다.
-    """
-    if "pid" in args and f"pid={args['pid']}" not in raw_block:
-        return False
-    if "user" in args and str(args["user"]) not in raw_block:
-        return False
-    if "event_type" in args and f'key="{args["event_type"]}"' not in raw_block:
-        return False
-    return True
 
 
 def _read_source_text(host: str, start: datetime, end: datetime) -> "tuple[str, int, str]":
@@ -136,14 +73,20 @@ def fetch_audit_log(args: Dict[str, Any]) -> Dict[str, Any]:
 
     text, scanned_objects, source_label = _read_source_text(host, start, end)
 
-    matched: List[Dict[str, Any]] = []
-    for event in group_raw_audit_events(text):
-        ts = event.pop("_ts")
-        if ts is not None and not (start <= ts <= end):
-            continue
-        if not _matches_filters(event["raw_block"], args):
-            continue
-        matched.append(event)
+    events = parse_audit_events(
+        text,
+        log_name="audit.log",
+        time_window=(args["start_time"], args["end_time"]),
+        pid=args.get("pid"),
+        ppid=args.get("ppid"),
+        key=args.get("event_type"),  # 우리 tool schema의 event_type == 파서의 audit key
+        serial=args.get("serial"),
+        exclude_interactive=args.get("exclude_interactive", False),
+    )
+
+    # 파서 자체엔 user 필터가 없어서(공통스키마엔 user 필드가 있지만 필터 옵션이 아님) 후처리
+    if "user" in args:
+        events = [e for e in events if e.get("user") == args["user"]]
 
     if scanned_objects == 0:
         summary = (
@@ -153,9 +96,8 @@ def fetch_audit_log(args: Dict[str, Any]) -> Dict[str, Any]:
     else:
         summary = (
             f"{host}의 {start.isoformat()}~{end.isoformat()} 구간에서 "
-            f"({source_label}) 조건에 맞는 audit 이벤트 {len(matched)}건 확인 "
-            "(raw 텍스트 그대로, 해석은 에이전트가 수행)"
+            f"({source_label}) 조건에 맞는 audit 이벤트 {len(events)}건 확인 "
+            "(uid/euid/session_type/exec_args까지 구조화해서 반환)"
         )
 
-    return {"count": len(matched), "summary": summary, "records": matched}
-
+    return {"count": len(events), "summary": summary, "records": events}

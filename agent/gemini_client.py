@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 from typing import Any, Dict, Optional
 
 from .prompts import build_system_prompt, build_user_prompt
@@ -86,6 +87,15 @@ class GeminiClient:
         try:
             return json.loads(cleaned)
         except json.JSONDecodeError as exc:
+            # Gemini가 response_mime_type="application/json"을 줘도 가끔 배열/객체
+            # 마지막 항목 뒤에 trailing comma(",]"/",}")를 남길 때가 있다. 표준 JSON
+            # 파서는 이걸 문법 오류로 거부하니, 딱 그 패턴만 제거하고 한 번 더 시도한다.
+            fixed = re.sub(r",\s*([\]}])", r"\1", cleaned)
+            if fixed != cleaned:
+                try:
+                    return json.loads(fixed)
+                except json.JSONDecodeError:
+                    pass  # 고쳐도 안 되면 원래 예외를 그대로 보고한다
             raise GeminiDecisionError(
                 f"Gemini 응답을 JSON으로 파싱하지 못했습니다: {exc}\n원본 응답:\n{text}"
             ) from exc

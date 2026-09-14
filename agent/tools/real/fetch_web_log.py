@@ -1,16 +1,20 @@
-﻿"""fetch_web_log 실제 구현 - nginx access.log를 읽어온다 (S3 또는 로컬 파일).
+﻿"""fetch_web_log 실제 구현 - EC2의 nginx access 로그를 읽어온다 (S3 또는 로컬 파일).
 
-*** 왜 apache가 아니라 nginx인가 ***
-실측 결과(2026-09-13) EC2에는 apache2와 nginx가 둘 다 있는데, nginx가 앞단 리버스
-프록시다. apache는 nginx 뒤에 있어서 src_ip가 항상 loopback(127.0.0.1)로 찍혀
-공격자 IP를 알 수 없다 (팀이 Suricata 조인 키로 src_ip 대신 http.xff를 쓰기로 한
-것도 같은 이유). 그래서 실제 클라이언트 IP가 찍히는 nginx access.log를 쓴다.
+파일명 == 함수명 규칙에 따라 agent/tools/real/fetch_web_log.py 안의 fetch_web_log
+함수만 있으면 agent/tools/registry.py의 build_default_registry()가 자동으로 이 함수를
+mock_tools.py 대신 사용한다.
 
-*** 파싱 방침: audit과 동일하게 최소한만 ***
-nginx access.log는 한 줄 = 요청 하나라 auditd처럼 여러 줄을 묶을 필요는 없지만,
-"이 줄이 어떤 의미인지"(정상 요청/공격 시도 등) 해석은 하지 않는다. 각 줄에서
-IP·시각만 뽑아 시간 필터링에 쓰고, 나머지 해석(메서드/경로/상태코드가 뭘 의미하는지)은
-raw_line 그대로 LLM에게 넘긴다.
+*** 2026-09-14 재교체: apache_parser.py -> nginx_json_parser.py ***
+처음엔 web 담당 팀원의 apache_parser.py(공백 구분 14필드, shlex 기반)를 썼는데,
+실제 sample_web.log를 열어보니 그 형식이 아니라 한 줄 = JSON 객체 하나인 nginx
+JSON 로그였다 (count=0으로 전부 파싱 실패하는 걸 보고 발견함). 그래서
+agent/tools/parsers/nginx_json_parser.py(실측 기반으로 새로 만듦)로 교체했다.
+apache_parser.py 자체는 지우지 않았다 — 다른 환경/서버가 그 형식을 쓸 수도 있음.
+
+*** src_ip/xff 관련: 실측 결과 loopback 문제가 없었다 ***
+당초 우려(nginx 뒤라 src_ip가 loopback일 수 있음)와 달리, 실제 nginx JSON
+로그는 src_ip에 이미 진짜 클라이언트 IP가 찍혀 있었다. 그래도 만약을 대비해
+xff 필터도 같이 봐준다 (다른 프록시 계층이 있는 경우 대비).
 
 필요 환경변수 (.env에 추가):
   AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY / AWS_DEFAULT_REGION
@@ -23,44 +27,17 @@ raw_line 그대로 LLM에게 넘긴다.
 from __future__ import annotations
 
 import os
-import re
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from datetime import datetime
+from typing import Any, Dict, List
 
+from ..parsers.nginx_json_parser import nginx_ts_to_dt, parse_nginx_json_line
 from ._s3_common import daterange, list_and_read_text, parse_iso
 
 DEFAULT_BUCKET = "ogwanwan-shop-bucket"
-S3_SOURCE_TYPE = "nginx"  # 인프라팀 확정 시 실제 S3 source_type 값으로 교체
-
-# nginx combined log 시작 부분: "203.0.113.45 - - [10/Sep/2026:10:01:12 +0000] ..."
-_IP_PREFIX_RE = re.compile(r"^(\S+)\s")
-_TIME_RE = re.compile(r"\[(\d{2}/\w{3}/\d{4}:\d{2}:\d{2}:\d{2})")
+S3_SOURCE_TYPE = "nginx"
 
 
-def _parse_nginx_time(line: str) -> Optional[datetime]:
-    match = _TIME_RE.search(line)
-    if not match:
-        return None
-    try:
-        dt = datetime.strptime(match.group(1), "%d/%b/%Y:%H:%M:%S")
-        return dt.replace(tzinfo=timezone.utc)
-    except ValueError:
-        return None
-
-
-def _extract_src_ip(line: str) -> Optional[str]:
-    match = _IP_PREFIX_RE.match(line)
-    return match.group(1) if match else None
-
-
-def _matches_filters(line: str, args: Dict[str, Any]) -> bool:
-    if "src_ip" in args and str(args["src_ip"]) not in line:
-        return False
-    # web 로그엔 pid/user 개념이 없어서, 있어도 무시 (요청하면 항상 통과)
-    return True
-
-
-def _read_source_text(host: str) -> "tuple[str, int, str]":
+def _read_source_text(host: str, start: datetime, end: datetime) -> "tuple[str, int, str]":
     local_path = os.environ.get("WEB_LOG_LOCAL_PATH")
     if local_path:
         if not os.path.exists(local_path):
@@ -73,10 +50,32 @@ def _read_source_text(host: str) -> "tuple[str, int, str]":
     bucket = os.environ.get("WEB_LOG_BUCKET", DEFAULT_BUCKET)
     s3 = boto3.client("s3", region_name=os.environ.get("AWS_DEFAULT_REGION"))
 
-    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-    prefix = f"raw/source_type={S3_SOURCE_TYPE}/host={host}/dt={today}/"
-    text, count = list_and_read_text(s3, bucket, prefix)
-    return text, count, f"s3://{bucket}/{prefix}"
+    chunks: List[str] = []
+    scanned_objects = 0
+    for date_str in daterange(start, end):
+        prefix = f"raw/source_type={S3_SOURCE_TYPE}/host={host}/dt={date_str}/"
+        text, count = list_and_read_text(s3, bucket, prefix)
+        scanned_objects += count
+        chunks.append(text)
+    return (
+        "\n".join(chunks),
+        scanned_objects,
+        f"s3://{bucket}/raw/source_type={S3_SOURCE_TYPE}/host={host}/",
+    )
+
+
+def _matches_filters(event: Dict[str, Any], args: Dict[str, Any]) -> bool:
+    if "src_ip" in args:
+        target = args["src_ip"]
+        if event.get("src_ip") != target and event.get("xff") != target:
+            return False
+    if "method" in args and (event.get("method") or "").upper() != str(args["method"]).upper():
+        return False
+    if "path" in args and args["path"] not in (event.get("uri") or ""):
+        return False
+    if "status_code" in args and event.get("status") != args["status_code"]:
+        return False
+    return True
 
 
 def fetch_web_log(args: Dict[str, Any]) -> Dict[str, Any]:
@@ -84,32 +83,35 @@ def fetch_web_log(args: Dict[str, Any]) -> Dict[str, Any]:
     start = parse_iso(args["start_time"])
     end = parse_iso(args["end_time"])
 
-    text, scanned_objects, source_label = _read_source_text(host)
+    text, scanned_objects, source_label = _read_source_text(host, start, end)
 
-    matched: List[Dict[str, Any]] = []
-    for line in text.splitlines():
-        line = line.strip()
-        if not line:
+    events: List[Dict[str, Any]] = []
+    for line in text.split("\n"):
+        if not line.strip():
             continue
-        ts = _parse_nginx_time(line)
-        if ts is not None and not (start <= ts <= end):
+        event = parse_nginx_json_line(line)
+        if event is None:
             continue
-        if not _matches_filters(line, args):
+
+        dt = nginx_ts_to_dt(event.get("timestamp"))
+        if dt is not None and not (start <= dt <= end):
             continue
-        matched.append(
-            {
-                "time": ts.isoformat() if ts else None,
-                "src_ip": _extract_src_ip(line),
-                "raw_line": line,
-            }
-        )
+
+        if not _matches_filters(event, args):
+            continue
+
+        events.append(event)
 
     if scanned_objects == 0:
-        summary = f"{source_label} 에서 데이터를 찾지 못했습니다. host/경로를 확인하세요."
+        summary = (
+            f"{source_label} 에서 {start.date()}~{end.date()} 구간에 데이터를 찾지 못했습니다. "
+            "host 이름 또는 로컬 파일 경로가 맞는지 확인하세요."
+        )
     else:
         summary = (
-            f"{host}의 {start.isoformat()}~{end.isoformat()} 구간에서 ({source_label}) "
-            f"조건에 맞는 web 요청 {len(matched)}건 확인"
+            f"{host}의 {start.isoformat()}~{end.isoformat()} 구간에서 "
+            f"({source_label}) 조건에 맞는 web 요청 {len(events)}건 확인 "
+            "(method/uri/status/upstream까지 구조화해서 반환)"
         )
 
-    return {"count": len(matched), "summary": summary, "records": matched}
+    return {"count": len(events), "summary": summary, "records": events}

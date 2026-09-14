@@ -1,0 +1,500 @@
+Sep 13 22:09:01 ip-10-0-7-236 CRON[247309]: pam_unix(cron:session): session closed for user root
+Sep 13 22:17:01 ip-10-0-7-236 CRON[247358]: pam_unix(cron:session): session opened for user root(uid=0) by (uid=0)
+Sep 13 22:17:01 ip-10-0-7-236 CRON[247358]: pam_unix(cron:session): session closed for user root
+Sep 13 22:39:01 ip-10-0-7-236 CRON[247368]: pam_unix(cron:session): session opened for user root(uid=0) by (uid=0)
+Sep 13 22:39:01 ip-10-0-7-236 CRON[247368]: pam_unix(cron:session): session closed for user root
+Sep 13 23:09:01 ip-10-0-7-236 CRON[247423]: pam_unix(cron:session): session opened for user root(uid=0) by (uid=0)
+Sep 13 23:09:01 ip-10-0-7-236 CRON[247423]: pam_unix(cron:session): session closed for user root
+Sep 13 23:17:01 ip-10-0-7-236 CRON[247470]: pam_unix(cron:session): session opened for user root(uid=0) by (uid=0)
+Sep 13 23:17:01 ip-10-0-7-236 CRON[247470]: pam_unix(cron:session): session closed for user root
+Sep 13 23:39:01 ip-10-0-7-236 CRON[247483]: pam_unix(cron:session): session opened for user root(uid=0) by (uid=0)
+Sep 13 23:39:01 ip-10-0-7-236 CRON[247483]: pam_unix(cron:session): session closed for user root
+Sep 14 00:00:01 ip-10-0-7-236 CRON[247534]: pam_unix(cron:session): session opened for user root(uid=0) by (uid=0)
+Sep 14 00:00:01 ip-10-0-7-236 CRON[247534]: pam_unix(cron:session): session closed for user root
+Sep 14 00:09:01 ip-10-0-7-236 CRON[247714]: pam_unix(cron:session): session opened for user root(uid=0) by (uid=0)
+Sep 14 00:09:02 ip-10-0-7-236 CRON[247714]: pam_unix(cron:session): session closed for user root
+Sep 14 00:17:01 ip-10-0-7-236 CRON[247763]: pam_unix(cron:session): session opened for user root(uid=0) by (uid=0)
+Sep 14 00:17:01 ip-10-0-7-236 CRON[247763]: pam_unix(cron:session): session closed for user root
+Sep 14 00:39:01 ip-10-0-7-236 CRON[247773]: pam_unix(cron:session): session opened for user root(uid=0) by (uid=0)
+Sep 14 00:39:01 ip-10-0-7-236 CRON[247773]: pam_unix(cron:session): session closed for user root
+Sep 14 01:09:01 ip-10-0-7-236 CRON[247853]: pam_unix(cron:session): session opened for user root(uid=0) by (uid=0)
+Sep 14 01:09:01 ip-10-0-7-236 CRON[247853]: pam_unix(cron:session): session closed for user root
+Sep 14 01:17:01 ip-10-0-7-236 CRON[247901]: pam_unix(cron:session): session opened for user root(uid=0) by (uid=0)
+Sep 14 01:17:01 ip-10-0-7-236 CRON[247901]: pam_unix(cron:session): session closed for user root
+Sep 14 01:39:01 ip-10-0-7-236 CRON[247914]: pam_unix(cron:session): session opened for user root(uid=0) by (uid=0)
+Sep 14 01:39:01 ip-10-0-7-236 CRON[247914]: pam_unix(cron:session): session closed for user root
+Sep 14 02:09:01 ip-10-0-7-236 CRON[247973]: pam_unix(cron:session): session opened for user root(uid=0) by (uid=0)
+Sep 14 02:09:01 ip-10-0-7-236 CRON[247973]: pam_unix(cron:session): session closed for user root
+Sep 14 02:17:01 ip-10-0-7-236 CRON[248022]: pam_unix(cron:session): session opened for user root(uid=0) by (uid=0)
+Sep 14 02:17:01 ip-10-0-7-236 CRON[248022]: pam_unix(cron:session): session closed for user root
+Sep 14 02:39:01 ip-10-0-7-236 CRON[248033]: pam_unix(cron:session): session opened for user root(uid=0) by (uid=0)
+Sep 14 02:39:01 ip-10-0-7-236 CRON[248033]: pam_unix(cron:session): session closed for user root
+Sep 14 03:09:01 ip-10-0-7-236 CRON[248096]: pam_unix(cron:session): session opened for user root(uid=0) by (uid=0)
+Sep 14 03:09:01 ip-10-0-7-236 CRON[248096]: pam_unix(cron:session): session closed for user root
+Sep 14 03:10:01 ip-10-0-7-236 CRON[248141]: pam_unix(cron:session): session opened for user root(uid=0) by (uid=0)
+Sep 14 03:10:01 ip-10-0-7-236 CRON[248141]: pam_unix(cron:session): session closed for user root
+Sep 14 03:17:01 ip-10-0-7-236 CRON[248145]: pam_unix(cron:session): session opened for user root(uid=0) by (uid=0)
+Sep 14 03:17:01 ip-10-0-7-236 CRON[248145]: pam_unix(cron:session): session closed for user root
+Sep 14 03:39:01 ip-10-0-7-236 CRON[248157]: pam_unix(cron:session): session opened for user root(uid=0) by (uid=0)
+Sep 14 03:39:01 ip-10-0-7-236 CRON[248157]: pam_unix(cron:session): session closed for user root
+Sep 14 04:09:01 ip-10-0-7-236 CRON[248214]: pam_unix(cron:session): session opened for user root(uid=0) by (uid=0)
+Sep 14 04:09:01 ip-10-0-7-236 CRON[248214]: pam_unix(cron:session): session closed for user root
+Sep 14 04:17:01 ip-10-0-7-236 CRON[248260]: pam_unix(cron:session): session opened for user root(uid=0) by (uid=0)
+Sep 14 04:17:01 ip-10-0-7-236 CRON[248260]: pam_unix(cron:session): session closed for user root
+Sep 14 04:39:01 ip-10-0-7-236 CRON[248272]: pam_unix(cron:session): session opened for user root(uid=0) by (uid=0)
+Sep 14 04:39:01 ip-10-0-7-236 CRON[248272]: pam_unix(cron:session): session closed for user root
+Sep 14 05:09:01 ip-10-0-7-236 CRON[248327]: pam_unix(cron:session): session opened for user root(uid=0) by (uid=0)
+Sep 14 05:09:01 ip-10-0-7-236 CRON[248327]: pam_unix(cron:session): session closed for user root
+Sep 14 05:17:01 ip-10-0-7-236 CRON[248374]: pam_unix(cron:session): session opened for user root(uid=0) by (uid=0)
+Sep 14 05:17:01 ip-10-0-7-236 CRON[248374]: pam_unix(cron:session): session closed for user root
+Sep 14 05:39:01 ip-10-0-7-236 CRON[248384]: pam_unix(cron:session): session opened for user root(uid=0) by (uid=0)
+Sep 14 05:39:01 ip-10-0-7-236 CRON[248384]: pam_unix(cron:session): session closed for user root
+Sep 14 06:09:01 ip-10-0-7-236 CRON[248442]: pam_unix(cron:session): session opened for user root(uid=0) by (uid=0)
+Sep 14 06:09:01 ip-10-0-7-236 CRON[248442]: pam_unix(cron:session): session closed for user root
+Sep 14 06:17:01 ip-10-0-7-236 CRON[248491]: pam_unix(cron:session): session opened for user root(uid=0) by (uid=0)
+Sep 14 06:17:01 ip-10-0-7-236 CRON[248491]: pam_unix(cron:session): session closed for user root
+Sep 14 06:25:01 ip-10-0-7-236 CRON[248498]: pam_unix(cron:session): session opened for user root(uid=0) by (uid=0)
+Sep 14 06:25:01 ip-10-0-7-236 CRON[248498]: pam_unix(cron:session): session closed for user root
+Sep 14 06:39:01 ip-10-0-7-236 CRON[248513]: pam_unix(cron:session): session opened for user root(uid=0) by (uid=0)
+Sep 14 06:39:01 ip-10-0-7-236 CRON[248513]: pam_unix(cron:session): session closed for user root
+Sep 14 07:09:01 ip-10-0-7-236 CRON[248641]: pam_unix(cron:session): session opened for user root(uid=0) by (uid=0)
+Sep 14 07:09:01 ip-10-0-7-236 CRON[248641]: pam_unix(cron:session): session closed for user root
+Sep 14 07:17:01 ip-10-0-7-236 CRON[248689]: pam_unix(cron:session): session opened for user root(uid=0) by (uid=0)
+Sep 14 07:17:01 ip-10-0-7-236 CRON[248689]: pam_unix(cron:session): session closed for user root
+Sep 14 07:32:24 ip-10-0-7-236 systemd-logind[486]: Power key pressed.
+Sep 14 07:32:24 ip-10-0-7-236 systemd-logind[486]: System is powering down.
+Sep 14 07:34:05 ip-10-0-7-236 systemd-logind[449]: New seat seat0.
+Sep 14 07:34:05 ip-10-0-7-236 systemd-logind[449]: Watching system buttons on /dev/input/event0 (Power Button)
+Sep 14 07:34:05 ip-10-0-7-236 systemd-logind[449]: Watching system buttons on /dev/input/event1 (Sleep Button)
+Sep 14 07:34:05 ip-10-0-7-236 systemd-logind[449]: Watching system buttons on /dev/input/event2 (AT Translated Set 2 keyboard)
+Sep 14 07:34:06 ip-10-0-7-236 sshd[803]: Server listening on 0.0.0.0 port 22.
+Sep 14 07:34:06 ip-10-0-7-236 sshd[803]: Server listening on :: port 22.
+Sep 14 07:35:25 ip-10-0-7-236 sudo: pam_unix(sudo:auth): conversation failed
+Sep 14 07:35:25 ip-10-0-7-236 sudo: pam_unix(sudo:auth): auth could not identify password for [www-data]
+Sep 14 07:35:25 ip-10-0-7-236 sudo: www-data : user NOT in sudoers ; PWD=/var/www/html ; USER=root ; COMMAND=/usr/bin/su
+Sep 14 07:36:17 ip-10-0-7-236 sshd[965]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=203.230.195.21  user=test
+Sep 14 07:36:19 ip-10-0-7-236 sshd[965]: Failed password for test from 203.230.195.21 port 8724 ssh2
+Sep 14 07:36:20 ip-10-0-7-236 sshd[965]: Connection closed by authenticating user test 203.230.195.21 port 8724 [preauth]
+Sep 14 07:36:22 ip-10-0-7-236 sshd[967]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=171.235.42.109  user=root
+Sep 14 07:36:22 ip-10-0-7-236 sshd[969]: Accepted publickey for ubuntu from 203.230.195.21 port 8718 ssh2: ED25519 SHA256:bJ1Rre7EFcE2RsLRqht/7NxuGdk1EfwdMickG/Nasoo
+Sep 14 07:36:22 ip-10-0-7-236 sshd[969]: pam_unix(sshd:session): session opened for user ubuntu(uid=1000) by (uid=0)
+Sep 14 07:36:23 ip-10-0-7-236 systemd-logind[449]: New session 1 of user ubuntu.
+Sep 14 07:36:23 ip-10-0-7-236 systemd: pam_unix(systemd-user:session): session opened for user ubuntu(uid=1000) by (uid=0)
+Sep 14 07:36:24 ip-10-0-7-236 sshd[967]: Failed password for root from 171.235.42.109 port 60666 ssh2
+Sep 14 07:36:25 ip-10-0-7-236 sshd[967]: Connection closed by authenticating user root 171.235.42.109 port 60666 [preauth]
+Sep 14 07:37:29 ip-10-0-7-236 sudo:   ubuntu : TTY=pts/0 ; PWD=/home/ubuntu ; USER=root ; COMMAND=/usr/bin/cat /root/.ssh/authorized_keys /home/ubuntu/.ssh/authorized_keys
+Sep 14 07:37:29 ip-10-0-7-236 sudo: pam_unix(sudo:session): session opened for user root(uid=0) by ubuntu(uid=1000)
+Sep 14 07:37:29 ip-10-0-7-236 sudo: pam_unix(sudo:session): session closed for user root
+Sep 14 07:37:42 ip-10-0-7-236 sudo:   ubuntu : TTY=pts/0 ; PWD=/home/ubuntu ; USER=root ; COMMAND=/usr/bin/find /var/www -name *.php -mtime -20 -ls
+Sep 14 07:37:42 ip-10-0-7-236 sudo: pam_unix(sudo:session): session opened for user root(uid=0) by ubuntu(uid=1000)
+Sep 14 07:37:43 ip-10-0-7-236 sudo: pam_unix(sudo:session): session closed for user root
+Sep 14 07:38:48 ip-10-0-7-236 sudo:   ubuntu : TTY=pts/0 ; PWD=/home/ubuntu/.ssh ; USER=root ; COMMAND=/usr/bin/crontab -l
+Sep 14 07:38:48 ip-10-0-7-236 sudo: pam_unix(sudo:session): session opened for user root(uid=0) by ubuntu(uid=1000)
+Sep 14 07:38:48 ip-10-0-7-236 sudo: pam_unix(sudo:session): session closed for user root
+Sep 14 07:39:01 ip-10-0-7-236 CRON[1101]: pam_unix(cron:session): session opened for user root(uid=0) by (uid=0)
+Sep 14 07:39:01 ip-10-0-7-236 CRON[1101]: pam_unix(cron:session): session closed for user root
+Sep 14 07:42:16 ip-10-0-7-236 sudo:   ubuntu : TTY=pts/0 ; PWD=/home/ubuntu/.ssh ; USER=root ; COMMAND=/usr/bin/grep -rl AVRIL_START_JANCOK /var/www/
+Sep 14 07:42:16 ip-10-0-7-236 sudo: pam_unix(sudo:session): session opened for user root(uid=0) by ubuntu(uid=1000)
+Sep 14 07:42:24 ip-10-0-7-236 sudo: pam_unix(sudo:session): session closed for user root
+Sep 14 07:43:54 ip-10-0-7-236 sudo:   ubuntu : TTY=pts/0 ; PWD=/var/www/html/wp-content/plugins/cache-optimizer-a5d5 ; USER=root ; COMMAND=/usr/bin/grep -E "method":"POST" /var/log/nginx/access.log
+Sep 14 07:43:54 ip-10-0-7-236 sudo: pam_unix(sudo:session): session opened for user root(uid=0) by ubuntu(uid=1000)
+Sep 14 07:43:54 ip-10-0-7-236 sudo: pam_unix(sudo:session): session closed for user root
+Sep 14 07:46:43 ip-10-0-7-236 sudo:   ubuntu : TTY=pts/0 ; PWD=/var/www/html/wp-content/plugins/cache-optimizer-a5d5 ; USER=root ; COMMAND=/usr/bin/grep -rl AVRIL_START_JANCOK /var/www/
+Sep 14 07:46:43 ip-10-0-7-236 sudo: pam_unix(sudo:session): session opened for user root(uid=0) by ubuntu(uid=1000)
+Sep 14 07:46:43 ip-10-0-7-236 sudo: pam_unix(sudo:session): session closed for user root
+Sep 14 07:46:43 ip-10-0-7-236 sudo:   ubuntu : TTY=pts/0 ; PWD=/var/www/html/wp-content/plugins/cache-optimizer-a5d5 ; USER=root ; COMMAND=/usr/bin/find /var/www -name *.php -mtime -3 -printf '%TY-%Tm-%Td %TH:%TM %p\\n'
+Sep 14 07:46:43 ip-10-0-7-236 sudo: pam_unix(sudo:session): session opened for user root(uid=0) by ubuntu(uid=1000)
+Sep 14 07:46:43 ip-10-0-7-236 sudo: pam_unix(sudo:session): session closed for user root
+Sep 14 07:47:30 ip-10-0-7-236 sudo:   ubuntu : TTY=pts/0 ; PWD=/var/www/html/wp-content/plugins/cache-optimizer-a5d5 ; USER=root ; COMMAND=/usr/bin/grep "method":"POST" /var/log/nginx/access.log
+Sep 14 07:47:30 ip-10-0-7-236 sudo: pam_unix(sudo:session): session opened for user root(uid=0) by ubuntu(uid=1000)
+Sep 14 07:47:30 ip-10-0-7-236 sudo: pam_unix(sudo:session): session closed for user root
+Sep 14 07:48:00 ip-10-0-7-236 sudo:   ubuntu : TTY=pts/0 ; PWD=/var/www/html/wp-content/plugins/cache-optimizer-a5d5 ; USER=root ; COMMAND=/usr/bin/ls -la --time-style=full-iso /var/www/html/wp-content/plugins/cache-optimizer-a5d5/
+Sep 14 07:48:00 ip-10-0-7-236 sudo: pam_unix(sudo:session): session opened for user root(uid=0) by ubuntu(uid=1000)
+Sep 14 07:48:00 ip-10-0-7-236 sudo: pam_unix(sudo:session): session closed for user root
+Sep 14 07:48:00 ip-10-0-7-236 sudo:   ubuntu : TTY=pts/0 ; PWD=/var/www/html/wp-content/plugins/cache-optimizer-a5d5 ; USER=root ; COMMAND=/usr/bin/stat /var/www/html/wp-content/plugins/cache-optimizer-a5d5/cache-optimizer-a5d5.php
+Sep 14 07:48:00 ip-10-0-7-236 sudo: pam_unix(sudo:session): session opened for user root(uid=0) by ubuntu(uid=1000)
+Sep 14 07:48:00 ip-10-0-7-236 sudo: pam_unix(sudo:session): session closed for user root
+Sep 14 07:48:00 ip-10-0-7-236 sudo:   ubuntu : TTY=pts/0 ; PWD=/var/www/html/wp-content/plugins/cache-optimizer-a5d5 ; USER=root ; COMMAND=/usr/bin/head -c 4000 /var/www/html/wp-content/plugins/cache-optimizer-a5d5/cache-optimizer-a5d5.php
+Sep 14 07:48:00 ip-10-0-7-236 sudo: pam_unix(sudo:session): session opened for user root(uid=0) by ubuntu(uid=1000)
+Sep 14 07:48:00 ip-10-0-7-236 sudo: pam_unix(sudo:session): session closed for user root
+Sep 14 07:48:33 ip-10-0-7-236 sudo:   ubuntu : TTY=pts/0 ; PWD=/var/www/html/wp-content/plugins/cache-optimizer-a5d5 ; USER=root ; COMMAND=/usr/bin/mysql -e 'SELECT option_value FROM wp_options WHERE option_name=\'active_plugins\'' wordpress
+Sep 14 07:48:33 ip-10-0-7-236 sudo: pam_unix(sudo:session): session opened for user root(uid=0) by ubuntu(uid=1000)
+Sep 14 07:48:33 ip-10-0-7-236 sudo: pam_unix(sudo:session): session closed for user root
+Sep 14 07:49:30 ip-10-0-7-236 sshd[1295]: error: kex_exchange_identification: read: Connection reset by peer
+Sep 14 07:49:30 ip-10-0-7-236 sshd[1295]: Connection reset by 80.94.95.43 port 42030
+Sep 14 07:49:35 ip-10-0-7-236 sudo:   ubuntu : TTY=pts/0 ; PWD=/var/www/html/wp-content/plugins/cache-optimizer-a5d5 ; USER=root ; COMMAND=/usr/sbin/ausearch -f cache-optimizer -i
+Sep 14 07:49:35 ip-10-0-7-236 sudo: pam_unix(sudo:session): session opened for user root(uid=0) by ubuntu(uid=1000)
+Sep 14 07:49:53 ip-10-0-7-236 sshd[1303]: error: kex_exchange_identification: read: Connection reset by peer
+Sep 14 07:49:53 ip-10-0-7-236 sshd[1303]: Connection reset by 194.50.235.136 port 54788
+Sep 14 07:49:58 ip-10-0-7-236 sudo: pam_unix(sudo:session): session closed for user root
+Sep 14 07:50:12 ip-10-0-7-236 sshd[1304]: error: kex_exchange_identification: client sent invalid protocol identifier "GET / HTTP/1.1"
+Sep 14 07:50:12 ip-10-0-7-236 sshd[1304]: banner exchange: Connection from 69.5.169.149 port 8950: invalid format
+Sep 14 07:50:17 ip-10-0-7-236 sudo:   ubuntu : TTY=pts/0 ; PWD=/var/www/html/wp-content/plugins/cache-optimizer-a5d5 ; USER=root ; COMMAND=/usr/sbin/ausearch -ui 33 -sc execve -ts 09/13/2026 14:45:00 -i
+Sep 14 07:50:17 ip-10-0-7-236 sudo: pam_unix(sudo:session): session opened for user root(uid=0) by ubuntu(uid=1000)
+Sep 14 07:50:17 ip-10-0-7-236 sudo: pam_unix(sudo:session): session closed for user root
+Sep 14 07:50:31 ip-10-0-7-236 sudo:   ubuntu : TTY=pts/0 ; PWD=/var/www/html/wp-content/plugins/cache-optimizer-a5d5 ; USER=root ; COMMAND=/usr/bin/cat /var/log/nginx/access.log.1 /var/log/nginx/access.log
+Sep 14 07:50:31 ip-10-0-7-236 sudo: pam_unix(sudo:session): session opened for user root(uid=0) by ubuntu(uid=1000)
+Sep 14 07:50:31 ip-10-0-7-236 sudo: pam_unix(sudo:session): session closed for user root
+Sep 14 08:09:01 ip-10-0-7-236 CRON[1364]: pam_unix(cron:session): session opened for user root(uid=0) by (uid=0)
+Sep 14 08:09:01 ip-10-0-7-236 CRON[1364]: pam_unix(cron:session): session closed for user root
+Sep 14 08:09:43 ip-10-0-7-236 sudo:   ubuntu : TTY=pts/0 ; PWD=/var/www/html/wp-content/plugins/cache-optimizer-a5d5 ; USER=root ; COMMAND=/usr/bin/grep -h cache-optimizer-a5d5.php?c= /var/log/nginx/access.log /var/log/nginx/access.log.1 /var/log/nginx/access.log.10.gz /var/log/nginx/access.log.11.gz /var/log/nginx/access.log.12.gz /var/log/nginx/access.log.13.gz /var/log/nginx/access.log.14.gz /var/log/nginx/access.log.2.gz /var/log/nginx/access.log.3.gz /var/log/nginx/access.log.4.gz /var/log/nginx/access.log.5.gz /var/log/nginx/access.log.6.gz /var/log/nginx/access.log.7.gz /var/log/nginx/access.log.8.gz /var/log/nginx/access.log.9.gz
+Sep 14 08:09:43 ip-10-0-7-236 sudo: pam_unix(sudo:session): session opened for user root(uid=0) by ubuntu(uid=1000)
+Sep 14 08:09:43 ip-10-0-7-236 sudo: pam_unix(sudo:session): session closed for user root
+Sep 14 08:09:52 ip-10-0-7-236 sudo:   ubuntu : TTY=pts/0 ; PWD=/var/www/html/wp-content/plugins/cache-optimizer-a5d5 ; USER=root ; COMMAND=/usr/bin/ls -la --time-style=full-iso /tmp /var/tmp /dev/shm
+Sep 14 08:09:52 ip-10-0-7-236 sudo: pam_unix(sudo:session): session opened for user root(uid=0) by ubuntu(uid=1000)
+Sep 14 08:09:52 ip-10-0-7-236 sudo: pam_unix(sudo:session): session closed for user root
+Sep 14 08:09:52 ip-10-0-7-236 sudo:   ubuntu : TTY=pts/0 ; PWD=/var/www/html/wp-content/plugins/cache-optimizer-a5d5 ; USER=root ; COMMAND=/usr/bin/find / -xdev -type f -newermt '2026-09-13 14:49' ! -newermt '2026-09-13 16:00'
+Sep 14 08:09:52 ip-10-0-7-236 sudo: pam_unix(sudo:session): session opened for user root(uid=0) by ubuntu(uid=1000)
+Sep 14 08:10:04 ip-10-0-7-236 sudo: pam_unix(sudo:session): session closed for user root
+Sep 14 08:13:41 ip-10-0-7-236 sudo:   ubuntu : TTY=pts/0 ; PWD=/var/www/html/wp-content/plugins/cache-optimizer-a5d5 ; USER=root ; COMMAND=/usr/bin/grep -hE "src_ip":"(158\\.140\\.191\\.113|152\\.58\\.) /var/log/nginx/access.log /var/log/nginx/access.log.1 /var/log/nginx/access.log.10.gz /var/log/nginx/access.log.11.gz /var/log/nginx/access.log.12.gz /var/log/nginx/access.log.13.gz /var/log/nginx/access.log.14.gz /var/log/nginx/access.log.2.gz /var/log/nginx/access.log.3.gz /var/log/nginx/access.log.4.gz /var/log/nginx/access.log.5.gz /var/log/nginx/access.log.6.gz /var/log/nginx/access.log.7.gz /var/log/nginx/access.log.8.gz /var/log/nginx/access.log.9.gz
+Sep 14 08:13:41 ip-10-0-7-236 sudo: pam_unix(sudo:session): session opened for user root(uid=0) by ubuntu(uid=1000)
+Sep 14 08:13:41 ip-10-0-7-236 sudo: pam_unix(sudo:session): session closed for user root
+Sep 14 08:14:49 ip-10-0-7-236 sudo:   ubuntu : TTY=pts/0 ; PWD=/ ; USER=root ; COMMAND=/usr/bin/ls -la --time-style=full-iso /var/log/suricata/
+Sep 14 08:14:49 ip-10-0-7-236 sudo: pam_unix(sudo:session): session opened for user root(uid=0) by ubuntu(uid=1000)
+Sep 14 08:14:49 ip-10-0-7-236 sudo: pam_unix(sudo:session): session closed for user root
+Sep 14 08:14:49 ip-10-0-7-236 sudo:   ubuntu : TTY=pts/0 ; PWD=/ ; USER=root ; COMMAND=/usr/bin/head -c 400 /var/log/suricata/eve.json
+Sep 14 08:14:49 ip-10-0-7-236 sudo: pam_unix(sudo:session): session opened for user root(uid=0) by ubuntu(uid=1000)
+Sep 14 08:14:49 ip-10-0-7-236 sudo: pam_unix(sudo:session): session closed for user root
+Sep 14 08:14:49 ip-10-0-7-236 sudo:   ubuntu : TTY=pts/0 ; PWD=/ ; USER=root ; COMMAND=/usr/bin/tail -1 /var/log/suricata/eve.json
+Sep 14 08:14:49 ip-10-0-7-236 sudo: pam_unix(sudo:session): session opened for user root(uid=0) by ubuntu(uid=1000)
+Sep 14 08:14:49 ip-10-0-7-236 sudo: pam_unix(sudo:session): session closed for user root
+Sep 14 08:14:49 ip-10-0-7-236 sudo:   ubuntu : TTY=pts/0 ; PWD=/ ; USER=root ; COMMAND=/usr/bin/grep -oE "in_iface":"[^"]+" /var/log/suricata/eve.json
+Sep 14 08:14:49 ip-10-0-7-236 sudo: pam_unix(sudo:session): session opened for user root(uid=0) by ubuntu(uid=1000)
+Sep 14 08:14:50 ip-10-0-7-236 sudo: pam_unix(sudo:session): session closed for user root
+Sep 14 08:14:50 ip-10-0-7-236 sudo:   ubuntu : TTY=pts/0 ; PWD=/ ; USER=root ; COMMAND=/usr/bin/zgrep -hE supportxmr|xmrig|"dest_port":3333 /var/log/suricata/eve.json.2.gz /var/log/suricata/eve.json.3.gz /var/log/suricata/eve.json.4.gz /var/log/suricata/eve.json.5.gz /var/log/suricata/eve.json.6.gz /var/log/suricata/eve.json.7.gz
+Sep 14 08:14:50 ip-10-0-7-236 sudo: pam_unix(sudo:session): session opened for user root(uid=0) by ubuntu(uid=1000)
+Sep 14 08:14:52 ip-10-0-7-236 sudo: pam_unix(sudo:session): session closed for user root
+Sep 14 08:14:57 ip-10-0-7-236 sudo:   ubuntu : TTY=pts/0 ; PWD=/ ; USER=root ; COMMAND=/usr/bin/grep -hiE 'out of memory|oom-kill|killed process' /var/log/syslog /var/log/syslog.1 /var/log/syslog.2.gz /var/log/syslog.3.gz /var/log/syslog.4.gz /var/log/kern.log /var/log/kern.log.1 /var/log/kern.log.2.gz /var/log/kern.log.3.gz /var/log/kern.log.4.gz
+Sep 14 08:14:57 ip-10-0-7-236 sudo: pam_unix(sudo:session): session opened for user root(uid=0) by ubuntu(uid=1000)
+Sep 14 08:14:57 ip-10-0-7-236 sudo: pam_unix(sudo:session): session closed for user root
+Sep 14 08:15:06 ip-10-0-7-236 sudo:   ubuntu : TTY=pts/0 ; PWD=/ ; USER=root ; COMMAND=/usr/bin/grep -hE "src_ip":"(158\\.140\\.191\\.113|152\\.58\\.) /var/log/nginx/access.log /var/log/nginx/access.log.1 /var/log/nginx/access.log.10.gz /var/log/nginx/access.log.11.gz /var/log/nginx/access.log.12.gz /var/log/nginx/access.log.13.gz /var/log/nginx/access.log.14.gz /var/log/nginx/access.log.2.gz /var/log/nginx/access.log.3.gz /var/log/nginx/access.log.4.gz /var/log/nginx/access.log.5.gz /var/log/nginx/access.log.6.gz /var/log/nginx/access.log.7.gz /var/log/nginx/access.log.8.gz /var/log/nginx/access.log.9.gz
+Sep 14 08:15:06 ip-10-0-7-236 sudo: pam_unix(sudo:session): session opened for user root(uid=0) by ubuntu(uid=1000)
+Sep 14 08:15:06 ip-10-0-7-236 sudo: pam_unix(sudo:session): session closed for user root
+Sep 14 08:15:06 ip-10-0-7-236 sudo:   ubuntu : TTY=pts/0 ; PWD=/ ; USER=root ; COMMAND=/usr/bin/crontab -l -u root
+Sep 14 08:15:06 ip-10-0-7-236 sudo: pam_unix(sudo:session): session opened for user root(uid=0) by ubuntu(uid=1000)
+Sep 14 08:15:06 ip-10-0-7-236 sudo: pam_unix(sudo:session): session closed for user root
+Sep 14 08:15:06 ip-10-0-7-236 sudo:   ubuntu : TTY=pts/0 ; PWD=/ ; USER=root ; COMMAND=/usr/bin/crontab -l -u ubuntu
+Sep 14 08:15:06 ip-10-0-7-236 sudo: pam_unix(sudo:session): session opened for user root(uid=0) by ubuntu(uid=1000)
+Sep 14 08:15:06 ip-10-0-7-236 sudo: pam_unix(sudo:session): session closed for user root
+Sep 14 08:15:06 ip-10-0-7-236 sudo:   ubuntu : TTY=pts/0 ; PWD=/ ; USER=root ; COMMAND=/usr/bin/crontab -l -u www-data
+Sep 14 08:15:06 ip-10-0-7-236 sudo: pam_unix(sudo:session): session opened for user root(uid=0) by ubuntu(uid=1000)
+Sep 14 08:15:06 ip-10-0-7-236 sudo: pam_unix(sudo:session): session closed for user root
+Sep 14 08:16:38 ip-10-0-7-236 sudo:   ubuntu : TTY=pts/0 ; PWD=/ ; USER=root ; COMMAND=/usr/bin/tail -15 /var/log/suricata/fast.log.1
+Sep 14 08:16:38 ip-10-0-7-236 sudo: pam_unix(sudo:session): session opened for user root(uid=0) by ubuntu(uid=1000)
+Sep 14 08:16:38 ip-10-0-7-236 sudo: pam_unix(sudo:session): session closed for user root
+Sep 14 08:16:43 ip-10-0-7-236 sudo:   ubuntu : TTY=pts/0 ; PWD=/ ; USER=root ; COMMAND=/usr/bin/grep -h "xff":"158.140.191.113" /var/log/suricata/eve.json.1
+Sep 14 08:16:43 ip-10-0-7-236 sudo: pam_unix(sudo:session): session opened for user root(uid=0) by ubuntu(uid=1000)
+Sep 14 08:16:44 ip-10-0-7-236 sudo: pam_unix(sudo:session): session closed for user root
+Sep 14 08:16:50 ip-10-0-7-236 sudo:   ubuntu : TTY=pts/0 ; PWD=/ ; USER=root ; COMMAND=/usr/bin/grep -h "event_type":"dns" /var/log/suricata/eve.json.1
+Sep 14 08:16:50 ip-10-0-7-236 sudo: pam_unix(sudo:session): session opened for user root(uid=0) by ubuntu(uid=1000)
+Sep 14 08:16:50 ip-10-0-7-236 sudo: pam_unix(sudo:session): session closed for user root
+Sep 14 08:16:56 ip-10-0-7-236 sudo:   ubuntu : TTY=pts/0 ; PWD=/ ; USER=root ; COMMAND=/usr/bin/grep -h 'Sep 14 07:3' /var/log/syslog
+Sep 14 08:16:56 ip-10-0-7-236 sudo: pam_unix(sudo:session): session opened for user root(uid=0) by ubuntu(uid=1000)
+Sep 14 08:16:56 ip-10-0-7-236 sudo: pam_unix(sudo:session): session closed for user root
+Sep 14 08:17:01 ip-10-0-7-236 CRON[1564]: pam_unix(cron:session): session opened for user root(uid=0) by (uid=0)
+Sep 14 08:17:01 ip-10-0-7-236 CRON[1564]: pam_unix(cron:session): session closed for user root
+Sep 14 08:22:51 ip-10-0-7-236 sudo:   ubuntu : TTY=pts/0 ; PWD=/ ; USER=root ; COMMAND=/usr/bin/grep -hc 'Failed password for test\\|Failed password for invalid user test' /var/log/auth.log /var/log/auth.log.1
+Sep 14 08:22:51 ip-10-0-7-236 sudo: pam_unix(sudo:session): session opened for user root(uid=0) by ubuntu(uid=1000)
+Sep 14 08:22:51 ip-10-0-7-236 sudo: pam_unix(sudo:session): session closed for user root
+Sep 14 08:22:51 ip-10-0-7-236 sudo:   ubuntu : TTY=pts/0 ; PWD=/ ; USER=root ; COMMAND=/usr/bin/grep -h 'Accepted password' /var/log/auth.log /var/log/auth.log.1 /var/log/auth.log.2.gz /var/log/auth.log.3.gz /var/log/auth.log.4.gz
+Sep 14 08:22:51 ip-10-0-7-236 sudo: pam_unix(sudo:session): session opened for user root(uid=0) by ubuntu(uid=1000)
+Sep 14 08:22:51 ip-10-0-7-236 sudo: pam_unix(sudo:session): session closed for user root
+Sep 14 08:39:01 ip-10-0-7-236 CRON[1642]: pam_unix(cron:session): session opened for user root(uid=0) by (uid=0)
+Sep 14 08:39:01 ip-10-0-7-236 CRON[1642]: pam_unix(cron:session): session closed for user root
+Sep 14 08:48:55 ip-10-0-7-236 sshd[1712]: error: kex_exchange_identification: Connection closed by remote host
+Sep 14 08:48:55 ip-10-0-7-236 sshd[1712]: Connection closed by 89.248.172.9 port 32002
+Sep 14 08:49:22 ip-10-0-7-236 sshd[1717]: error: kex_exchange_identification: Connection closed by remote host
+Sep 14 08:49:22 ip-10-0-7-236 sshd[1717]: Connection closed by 89.248.172.33 port 37476
+Sep 14 08:49:23 ip-10-0-7-236 sshd[1718]: Connection closed by 89.248.172.33 port 37478 [preauth]
+Sep 14 08:54:47 ip-10-0-7-236 sudo:   ubuntu : TTY=pts/0 ; PWD=/home/ubuntu/.ssh ; USER=root ; COMMAND=/usr/bin/find / -name .env -o -name *.env
+Sep 14 08:54:47 ip-10-0-7-236 sudo: pam_unix(sudo:session): session opened for user root(uid=0) by ubuntu(uid=1000)
+Sep 14 08:54:48 ip-10-0-7-236 sudo: pam_unix(sudo:session): session closed for user root
+Sep 14 08:56:44 ip-10-0-7-236 sudo:   ubuntu : TTY=pts/0 ; PWD=/home/ubuntu/Agentic-SOC ; USER=root ; COMMAND=/usr/bin/find /var/www -name .env -ls
+Sep 14 08:56:44 ip-10-0-7-236 sudo: pam_unix(sudo:session): session opened for user root(uid=0) by ubuntu(uid=1000)
+Sep 14 08:56:44 ip-10-0-7-236 sudo: pam_unix(sudo:session): session closed for user root
+Sep 14 08:56:50 ip-10-0-7-236 sudo:   ubuntu : TTY=pts/0 ; PWD=/home/ubuntu/Agentic-SOC ; USER=root ; COMMAND=/usr/bin/cat /var/www/html/.env
+Sep 14 08:56:50 ip-10-0-7-236 sudo: pam_unix(sudo:session): session opened for user root(uid=0) by ubuntu(uid=1000)
+Sep 14 08:56:50 ip-10-0-7-236 sudo: pam_unix(sudo:session): session closed for user root
+Sep 14 08:56:56 ip-10-0-7-236 sudo:   ubuntu : TTY=pts/0 ; PWD=/home/ubuntu/Agentic-SOC ; USER=root ; COMMAND=/usr/bin/grep -rlE AKIA[0-9A-Z]{16}|sk-[a-zA-Z0-9]{20}|API_KEY|SECRET|PASSWORD /var/www /home /root /opt
+Sep 14 08:56:56 ip-10-0-7-236 sudo: pam_unix(sudo:session): session opened for user root(uid=0) by ubuntu(uid=1000)
+Sep 14 08:56:56 ip-10-0-7-236 sudo: pam_unix(sudo:session): session closed for user root
+Sep 14 08:57:19 ip-10-0-7-236 sudo:   ubuntu : TTY=pts/0 ; PWD=/home/ubuntu/Agentic-SOC ; USER=root ; COMMAND=/usr/bin/grep -iE \\.env /var/log/apache2/access.log /var/log/apache2/access.log.1 /var/log/apache2/access.log.10.gz /var/log/apache2/access.log.11.gz /var/log/apache2/access.log.12.gz /var/log/apache2/access.log.13.gz /var/log/apache2/access.log.14.gz /var/log/apache2/access.log.2.gz /var/log/apache2/access.log.3.gz /var/log/apache2/access.log.4.gz /var/log/apache2/access.log.5.gz /var/log/apache2/access.log.6.gz /var/log/apache2/access.log.7.gz /var/log/apache2/access.log.8.gz /var/log/apache2/access.log.9.gz /var/log/nginx/access.log /var/log/nginx/access.log.1 /var/log/nginx/access.log.10.gz /var/log/nginx/access.log.11.gz /var/log/nginx/access.log.12.gz /var/log/nginx/access.log.13.gz /var/log/nginx/access.log.14.gz /var/log/nginx/access.log.2.gz /var/log/nginx/access.log.3.gz /var/log/nginx/access.log.4.gz /var/log/nginx/access.log.5.gz /var/log/nginx/access.log.6.gz
+Sep 14 08:57:19 ip-10-0-7-236 sudo:   ubuntu : (command continued) /var/log/nginx/access.log.7.gz /var/log/nginx/access.log.8.gz /var/log/nginx/access.log.9.gz
+Sep 14 08:57:19 ip-10-0-7-236 sudo: pam_unix(sudo:session): session opened for user root(uid=0) by ubuntu(uid=1000)
+Sep 14 08:57:19 ip-10-0-7-236 sudo: pam_unix(sudo:session): session closed for user root
+Sep 14 08:59:49 ip-10-0-7-236 sudo:   ubuntu : TTY=pts/0 ; PWD=/home/ubuntu/Agentic-SOC ; USER=root ; COMMAND=/usr/bin/find /var/www -name *.php -mtime -20 -newermt 2026-09-01 -ls
+Sep 14 08:59:49 ip-10-0-7-236 sudo: pam_unix(sudo:session): session opened for user root(uid=0) by ubuntu(uid=1000)
+Sep 14 08:59:49 ip-10-0-7-236 sudo: pam_unix(sudo:session): session closed for user root
+Sep 14 09:00:03 ip-10-0-7-236 sudo:   ubuntu : TTY=pts/0 ; PWD=/home/ubuntu/Agentic-SOC ; USER=root ; COMMAND=/usr/bin/grep -rlniE 'JANCOK|Command Executor|shell_exec|passthru|eval\\(\\$_' /var/www/html
+Sep 14 09:00:03 ip-10-0-7-236 sudo: pam_unix(sudo:session): session opened for user root(uid=0) by ubuntu(uid=1000)
+Sep 14 09:00:04 ip-10-0-7-236 sudo: pam_unix(sudo:session): session closed for user root
+Sep 14 09:00:12 ip-10-0-7-236 sudo:   ubuntu : TTY=pts/0 ; PWD=/home/ubuntu/Agentic-SOC ; USER=root ; COMMAND=/usr/bin/grep -iE 'POST .*\\.php|cmd=|shell_exec' /var/log/apache2/access.log /var/log/apache2/access.log.1 /var/log/apache2/access.log.10.gz /var/log/apache2/access.log.11.gz /var/log/apache2/access.log.12.gz /var/log/apache2/access.log.13.gz /var/log/apache2/access.log.14.gz /var/log/apache2/access.log.2.gz /var/log/apache2/access.log.3.gz /var/log/apache2/access.log.4.gz /var/log/apache2/access.log.5.gz /var/log/apache2/access.log.6.gz /var/log/apache2/access.log.7.gz /var/log/apache2/access.log.8.gz /var/log/apache2/access.log.9.gz /var/log/nginx/access.log /var/log/nginx/access.log.1 /var/log/nginx/access.log.10.gz /var/log/nginx/access.log.11.gz /var/log/nginx/access.log.12.gz /var/log/nginx/access.log.13.gz /var/log/nginx/access.log.14.gz /var/log/nginx/access.log.2.gz /var/log/nginx/access.log.3.gz /var/log/nginx/access.log.4.gz /var/log/nginx/access.log.5.gz
+Sep 14 09:00:12 ip-10-0-7-236 sudo:   ubuntu : (command continued) /var/log/nginx/access.log.6.gz /var/log/nginx/access.log.7.gz /var/log/nginx/access.log.8.gz /var/log/nginx/access.log.9.gz
+Sep 14 09:00:12 ip-10-0-7-236 sudo: pam_unix(sudo:session): session opened for user root(uid=0) by ubuntu(uid=1000)
+Sep 14 09:00:12 ip-10-0-7-236 sudo: pam_unix(sudo:session): session closed for user root
+Sep 14 09:00:18 ip-10-0-7-236 sudo:   ubuntu : TTY=pts/0 ; PWD=/home/ubuntu/Agentic-SOC ; USER=root ; COMMAND=/usr/bin/find / -name .env*
+Sep 14 09:00:18 ip-10-0-7-236 sudo: pam_unix(sudo:session): session opened for user root(uid=0) by ubuntu(uid=1000)
+Sep 14 09:00:19 ip-10-0-7-236 sudo: pam_unix(sudo:session): session closed for user root
+Sep 14 09:00:25 ip-10-0-7-236 sudo:   ubuntu : TTY=pts/0 ; PWD=/home/ubuntu/Agentic-SOC ; USER=root ; COMMAND=/usr/bin/grep -E DB_USER|DB_PASSWORD /var/www/html/wp-config.php
+Sep 14 09:00:25 ip-10-0-7-236 sudo: pam_unix(sudo:session): session opened for user root(uid=0) by ubuntu(uid=1000)
+Sep 14 09:00:25 ip-10-0-7-236 sudo: pam_unix(sudo:session): session closed for user root
+Sep 14 09:02:58 ip-10-0-7-236 sshd[1807]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=171.235.42.109  user=root
+Sep 14 09:03:00 ip-10-0-7-236 sshd[1807]: Failed password for root from 171.235.42.109 port 53013 ssh2
+Sep 14 09:03:02 ip-10-0-7-236 sshd[1807]: Connection closed by authenticating user root 171.235.42.109 port 53013 [preauth]
+Sep 14 09:03:46 ip-10-0-7-236 sudo:   ubuntu : TTY=pts/0 ; PWD=/home/ubuntu/Agentic-SOC ; USER=www-data ; COMMAND=/usr/bin/cat /home/ubuntu/Agentic-SOC/.env
+Sep 14 09:03:46 ip-10-0-7-236 sudo: pam_unix(sudo:session): session opened for user www-data(uid=33) by ubuntu(uid=1000)
+Sep 14 09:03:46 ip-10-0-7-236 sudo: pam_unix(sudo:session): session closed for user www-data
+Sep 14 09:03:55 ip-10-0-7-236 sudo:   ubuntu : TTY=pts/0 ; PWD=/home/ubuntu/Agentic-SOC ; USER=root ; COMMAND=/usr/bin/grep -iE cache-optimizer /var/log/apache2/access.log /var/log/apache2/access.log.1 /var/log/apache2/access.log.10.gz /var/log/apache2/access.log.11.gz /var/log/apache2/access.log.12.gz /var/log/apache2/access.log.13.gz /var/log/apache2/access.log.14.gz /var/log/apache2/access.log.2.gz /var/log/apache2/access.log.3.gz /var/log/apache2/access.log.4.gz /var/log/apache2/access.log.5.gz /var/log/apache2/access.log.6.gz /var/log/apache2/access.log.7.gz /var/log/apache2/access.log.8.gz /var/log/apache2/access.log.9.gz /var/log/nginx/access.log /var/log/nginx/access.log.1 /var/log/nginx/access.log.10.gz /var/log/nginx/access.log.11.gz /var/log/nginx/access.log.12.gz /var/log/nginx/access.log.13.gz /var/log/nginx/access.log.14.gz /var/log/nginx/access.log.2.gz /var/log/nginx/access.log.3.gz /var/log/nginx/access.log.4.gz /var/log/nginx/access.log.5.gz
+Sep 14 09:03:55 ip-10-0-7-236 sudo:   ubuntu : (command continued) /var/log/nginx/access.log.6.gz /var/log/nginx/access.log.7.gz /var/log/nginx/access.log.8.gz /var/log/nginx/access.log.9.gz
+Sep 14 09:03:55 ip-10-0-7-236 sudo: pam_unix(sudo:session): session opened for user root(uid=0) by ubuntu(uid=1000)
+Sep 14 09:03:55 ip-10-0-7-236 sudo: pam_unix(sudo:session): session closed for user root
+Sep 14 09:04:02 ip-10-0-7-236 sudo:   ubuntu : TTY=pts/0 ; PWD=/home/ubuntu/Agentic-SOC ; USER=root ; COMMAND=/usr/bin/head -50 /var/www/html/wp-content/plugins/cache-optimizer-a5d5/cache-optimizer-a5d5.php
+Sep 14 09:04:02 ip-10-0-7-236 sudo: pam_unix(sudo:session): session opened for user root(uid=0) by ubuntu(uid=1000)
+Sep 14 09:04:02 ip-10-0-7-236 sudo: pam_unix(sudo:session): session closed for user root
+Sep 14 09:04:10 ip-10-0-7-236 sudo:   ubuntu : TTY=pts/0 ; PWD=/home/ubuntu/Agentic-SOC ; USER=root ; COMMAND=/usr/bin/tail -5 /etc/passwd
+Sep 14 09:04:10 ip-10-0-7-236 sudo: pam_unix(sudo:session): session opened for user root(uid=0) by ubuntu(uid=1000)
+Sep 14 09:04:10 ip-10-0-7-236 sudo: pam_unix(sudo:session): session closed for user root
+Sep 14 09:04:10 ip-10-0-7-236 sudo:   ubuntu : TTY=pts/0 ; PWD=/home/ubuntu/Agentic-SOC ; USER=root ; COMMAND=/usr/bin/cat /root/.ssh/authorized_keys /home/ubuntu/.ssh/authorized_keys
+Sep 14 09:04:10 ip-10-0-7-236 sudo: pam_unix(sudo:session): session opened for user root(uid=0) by ubuntu(uid=1000)
+Sep 14 09:04:10 ip-10-0-7-236 sudo: pam_unix(sudo:session): session closed for user root
+Sep 14 09:04:15 ip-10-0-7-236 sudo:   ubuntu : TTY=pts/0 ; PWD=/home/ubuntu/Agentic-SOC ; USER=root ; COMMAND=/usr/bin/crontab -l
+Sep 14 09:04:15 ip-10-0-7-236 sudo: pam_unix(sudo:session): session opened for user root(uid=0) by ubuntu(uid=1000)
+Sep 14 09:04:15 ip-10-0-7-236 sudo: pam_unix(sudo:session): session closed for user root
+Sep 14 09:07:36 ip-10-0-7-236 sudo:   ubuntu : TTY=pts/0 ; PWD=/home/ubuntu/Agentic-SOC ; USER=root ; COMMAND=/usr/bin/su
+Sep 14 09:07:37 ip-10-0-7-236 sudo: pam_unix(sudo:session): session opened for user root(uid=0) by ubuntu(uid=1000)
+Sep 14 09:07:37 ip-10-0-7-236 su: (to root) root on pts/1
+Sep 14 09:07:37 ip-10-0-7-236 su: pam_unix(su:session): session opened for user root(uid=0) by ubuntu(uid=0)
+Sep 14 09:08:11 ip-10-0-7-236 su: pam_unix(su:session): session closed for user root
+Sep 14 09:08:11 ip-10-0-7-236 sudo: pam_unix(sudo:session): session closed for user root
+Sep 14 09:08:31 ip-10-0-7-236 sudo:   ubuntu : TTY=pts/0 ; PWD=/home/ubuntu/Agentic-SOC ; USER=root ; COMMAND=/usr/bin/chage -l test
+Sep 14 09:08:31 ip-10-0-7-236 sudo: pam_unix(sudo:session): session opened for user root(uid=0) by ubuntu(uid=1000)
+Sep 14 09:08:31 ip-10-0-7-236 sudo: pam_unix(sudo:session): session closed for user root
+Sep 14 09:08:52 ip-10-0-7-236 sudo:   ubuntu : TTY=pts/0 ; PWD=/home/ubuntu/Agentic-SOC ; USER=root ; COMMAND=/usr/bin/grep -rlnE base64_decode.*\\$_(REQUEST|GET|POST)|AVRIL_START /var/www/html
+Sep 14 09:08:52 ip-10-0-7-236 sudo: pam_unix(sudo:session): session opened for user root(uid=0) by ubuntu(uid=1000)
+Sep 14 09:08:52 ip-10-0-7-236 sudo: pam_unix(sudo:session): session closed for user root
+Sep 14 09:09:01 ip-10-0-7-236 CRON[1863]: pam_unix(cron:session): session opened for user root(uid=0) by (uid=0)
+Sep 14 09:09:01 ip-10-0-7-236 CRON[1863]: pam_unix(cron:session): session closed for user root
+Sep 14 09:09:03 ip-10-0-7-236 sudo:   ubuntu : TTY=pts/0 ; PWD=/home/ubuntu/Agentic-SOC ; USER=root ; COMMAND=/usr/bin/stat /home/ubuntu/.ssh/authorized_keys
+Sep 14 09:09:03 ip-10-0-7-236 sudo: pam_unix(sudo:session): session opened for user root(uid=0) by ubuntu(uid=1000)
+Sep 14 09:09:03 ip-10-0-7-236 sudo: pam_unix(sudo:session): session closed for user root
+Sep 14 09:17:01 ip-10-0-7-236 CRON[1920]: pam_unix(cron:session): session opened for user root(uid=0) by (uid=0)
+Sep 14 09:17:01 ip-10-0-7-236 CRON[1920]: pam_unix(cron:session): session closed for user root
+Sep 14 09:22:24 ip-10-0-7-236 sshd[1055]: Received disconnect from 203.230.195.21 port 8718:11: disconnected by user
+Sep 14 09:22:24 ip-10-0-7-236 systemd-logind[449]: Session 1 logged out. Waiting for processes to exit.
+Sep 14 09:22:24 ip-10-0-7-236 sshd[1055]: Disconnected from user ubuntu 203.230.195.21 port 8718
+Sep 14 09:22:24 ip-10-0-7-236 sshd[969]: pam_unix(sshd:session): session closed for user ubuntu
+Sep 14 09:22:24 ip-10-0-7-236 systemd-logind[449]: Removed session 1.
+Sep 14 09:22:34 ip-10-0-7-236 systemd: pam_unix(systemd-user:session): session closed for user ubuntu
+Sep 14 09:39:01 ip-10-0-7-236 CRON[1934]: pam_unix(cron:session): session opened for user root(uid=0) by (uid=0)
+Sep 14 09:39:01 ip-10-0-7-236 CRON[1934]: pam_unix(cron:session): session closed for user root
+Sep 14 10:04:18 ip-10-0-7-236 sshd[2018]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=171.235.42.109  user=root
+Sep 14 10:04:20 ip-10-0-7-236 sshd[2018]: Failed password for root from 171.235.42.109 port 55702 ssh2
+Sep 14 10:04:21 ip-10-0-7-236 sshd[2018]: Connection closed by authenticating user root 171.235.42.109 port 55702 [preauth]
+Sep 14 10:07:00 ip-10-0-7-236 sshd[2021]: error: kex_exchange_identification: Connection closed by remote host
+Sep 14 10:07:00 ip-10-0-7-236 sshd[2021]: Connection closed by 46.201.90.92 port 43554
+Sep 14 10:07:49 ip-10-0-7-236 sshd[2025]: error: kex_exchange_identification: Connection closed by remote host
+Sep 14 10:07:49 ip-10-0-7-236 sshd[2025]: Connection closed by 46.201.90.92 port 39792
+Sep 14 10:09:01 ip-10-0-7-236 CRON[2026]: pam_unix(cron:session): session opened for user root(uid=0) by (uid=0)
+Sep 14 10:09:01 ip-10-0-7-236 CRON[2026]: pam_unix(cron:session): session closed for user root
+Sep 14 10:17:01 ip-10-0-7-236 CRON[2077]: pam_unix(cron:session): session opened for user root(uid=0) by (uid=0)
+Sep 14 10:17:01 ip-10-0-7-236 CRON[2077]: pam_unix(cron:session): session closed for user root
+Sep 14 10:39:01 ip-10-0-7-236 CRON[2093]: pam_unix(cron:session): session opened for user root(uid=0) by (uid=0)
+Sep 14 10:39:01 ip-10-0-7-236 CRON[2093]: pam_unix(cron:session): session closed for user root
+Sep 14 10:41:07 ip-10-0-7-236 sshd[2143]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=171.235.42.109  user=root
+Sep 14 10:41:09 ip-10-0-7-236 sshd[2143]: Failed password for root from 171.235.42.109 port 59133 ssh2
+Sep 14 10:41:11 ip-10-0-7-236 sshd[2143]: Connection closed by authenticating user root 171.235.42.109 port 59133 [preauth]
+Sep 14 11:01:04 ip-10-0-7-236 sshd[2162]: error: kex_exchange_identification: Connection closed by remote host
+Sep 14 11:01:04 ip-10-0-7-236 sshd[2162]: Connection closed by 159.146.6.22 port 21181
+Sep 14 11:09:01 ip-10-0-7-236 CRON[2165]: pam_unix(cron:session): session opened for user root(uid=0) by (uid=0)
+Sep 14 11:09:01 ip-10-0-7-236 CRON[2165]: pam_unix(cron:session): session closed for user root
+Sep 14 11:17:01 ip-10-0-7-236 CRON[2218]: pam_unix(cron:session): session opened for user root(uid=0) by (uid=0)
+Sep 14 11:17:01 ip-10-0-7-236 CRON[2218]: pam_unix(cron:session): session closed for user root
+Sep 14 11:29:26 ip-10-0-7-236 sshd[2228]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=171.235.42.109  user=root
+Sep 14 11:29:28 ip-10-0-7-236 sshd[2228]: Failed password for root from 171.235.42.109 port 34094 ssh2
+Sep 14 11:29:29 ip-10-0-7-236 sshd[2228]: Connection closed by authenticating user root 171.235.42.109 port 34094 [preauth]
+Sep 14 11:33:46 ip-10-0-7-236 sshd[2232]: Connection closed by 66.132.172.211 port 18992 [preauth]
+Sep 14 11:39:01 ip-10-0-7-236 CRON[2245]: pam_unix(cron:session): session opened for user root(uid=0) by (uid=0)
+Sep 14 11:39:01 ip-10-0-7-236 CRON[2245]: pam_unix(cron:session): session closed for user root
+Sep 14 11:52:01 ip-10-0-7-236 sshd[2303]: error: kex_exchange_identification: Connection closed by remote host
+Sep 14 11:52:01 ip-10-0-7-236 sshd[2303]: Connection closed by 88.230.73.212 port 6683
+Sep 14 11:53:21 ip-10-0-7-236 sshd[2304]: Invalid user  from 154.18.197.29 port 48174
+Sep 14 11:53:26 ip-10-0-7-236 sshd[2304]: Failed none for invalid user  from 154.18.197.29 port 48174 ssh2
+Sep 14 11:53:32 ip-10-0-7-236 sshd[2304]: Connection closed by invalid user  154.18.197.29 port 48174 [preauth]
+Sep 14 12:00:01 ip-10-0-7-236 CRON[2745]: pam_unix(cron:session): session opened for user root(uid=0) by (uid=0)
+Sep 14 12:00:01 ip-10-0-7-236 CRON[2745]: pam_unix(cron:session): session closed for user root
+Sep 14 12:03:39 ip-10-0-7-236 sshd[2749]: Connection closed by 18.218.118.203 port 50022 [preauth]
+Sep 14 12:06:50 ip-10-0-7-236 sshd[2752]: error: kex_exchange_identification: Connection closed by remote host
+Sep 14 12:06:50 ip-10-0-7-236 sshd[2752]: Connection closed by 31.128.179.166 port 23517
+Sep 14 12:09:01 ip-10-0-7-236 CRON[2753]: pam_unix(cron:session): session opened for user root(uid=0) by (uid=0)
+Sep 14 12:09:01 ip-10-0-7-236 CRON[2753]: pam_unix(cron:session): session closed for user root
+Sep 14 12:09:34 ip-10-0-7-236 sshd[2804]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=171.235.42.109  user=root
+Sep 14 12:09:35 ip-10-0-7-236 sshd[2804]: Failed password for root from 171.235.42.109 port 55905 ssh2
+Sep 14 12:09:37 ip-10-0-7-236 sshd[2804]: Connection closed by authenticating user root 171.235.42.109 port 55905 [preauth]
+Sep 14 12:12:14 ip-10-0-7-236 sshd[2807]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=212.116.238.51  user=ubuntu
+Sep 14 12:12:16 ip-10-0-7-236 sshd[2807]: Failed password for ubuntu from 212.116.238.51 port 13285 ssh2
+Sep 14 12:12:17 ip-10-0-7-236 sshd[2807]: Received disconnect from 212.116.238.51 port 13285:11: Client disconnecting normally [preauth]
+Sep 14 12:12:17 ip-10-0-7-236 sshd[2807]: Disconnected from authenticating user ubuntu 212.116.238.51 port 13285 [preauth]
+Sep 14 12:12:49 ip-10-0-7-236 sshd[2809]: error: kex_exchange_identification: Connection closed by remote host
+Sep 14 12:12:49 ip-10-0-7-236 sshd[2809]: Connection closed by 31.128.179.166 port 50339
+Sep 14 12:17:01 ip-10-0-7-236 CRON[2847]: pam_unix(cron:session): session opened for user root(uid=0) by (uid=0)
+Sep 14 12:17:01 ip-10-0-7-236 CRON[2847]: pam_unix(cron:session): session closed for user root
+Sep 14 12:22:45 ip-10-0-7-236 sshd[2855]: error: kex_exchange_identification: Connection closed by remote host
+Sep 14 12:22:45 ip-10-0-7-236 sshd[2855]: Connection closed by 181.78.79.148 port 44034
+Sep 14 12:26:00 ip-10-0-7-236 sshd[2866]: error: kex_exchange_identification: Connection closed by remote host
+Sep 14 12:26:00 ip-10-0-7-236 sshd[2866]: Connection closed by 181.78.79.148 port 34032
+Sep 14 12:39:01 ip-10-0-7-236 CRON[2877]: pam_unix(cron:session): session opened for user root(uid=0) by (uid=0)
+Sep 14 12:39:01 ip-10-0-7-236 CRON[2877]: pam_unix(cron:session): session closed for user root
+Sep 14 12:42:31 ip-10-0-7-236 sshd[2929]: Invalid user user from 212.116.238.51 port 28611
+Sep 14 12:42:31 ip-10-0-7-236 sshd[2929]: pam_unix(sshd:auth): check pass; user unknown
+Sep 14 12:42:31 ip-10-0-7-236 sshd[2929]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=212.116.238.51 
+Sep 14 12:42:33 ip-10-0-7-236 sshd[2929]: Failed password for invalid user user from 212.116.238.51 port 28611 ssh2
+Sep 14 12:42:34 ip-10-0-7-236 sshd[2929]: Received disconnect from 212.116.238.51 port 28611:11: Client disconnecting normally [preauth]
+Sep 14 12:42:34 ip-10-0-7-236 sshd[2929]: Disconnected from invalid user user 212.116.238.51 port 28611 [preauth]
+Sep 14 13:09:01 ip-10-0-7-236 CRON[2961]: pam_unix(cron:session): session opened for user root(uid=0) by (uid=0)
+Sep 14 13:09:01 ip-10-0-7-236 CRON[2961]: pam_unix(cron:session): session closed for user root
+Sep 14 13:12:45 ip-10-0-7-236 sshd[3012]: Invalid user user from 212.116.238.51 port 52319
+Sep 14 13:12:45 ip-10-0-7-236 sshd[3012]: pam_unix(sshd:auth): check pass; user unknown
+Sep 14 13:12:45 ip-10-0-7-236 sshd[3012]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=212.116.238.51 
+Sep 14 13:12:47 ip-10-0-7-236 sshd[3012]: Failed password for invalid user user from 212.116.238.51 port 52319 ssh2
+Sep 14 13:12:48 ip-10-0-7-236 sshd[3012]: Received disconnect from 212.116.238.51 port 52319:11: Client disconnecting normally [preauth]
+Sep 14 13:12:48 ip-10-0-7-236 sshd[3012]: Disconnected from invalid user user 212.116.238.51 port 52319 [preauth]
+Sep 14 13:16:38 ip-10-0-7-236 sshd[3019]: error: kex_exchange_identification: Connection closed by remote host
+Sep 14 13:16:38 ip-10-0-7-236 sshd[3019]: Connection closed by 167.249.147.6 port 34588
+Sep 14 13:16:58 ip-10-0-7-236 sshd[3020]: error: kex_exchange_identification: Connection closed by remote host
+Sep 14 13:16:58 ip-10-0-7-236 sshd[3020]: Connection closed by 167.249.147.4 port 49656
+Sep 14 13:17:01 ip-10-0-7-236 CRON[3022]: pam_unix(cron:session): session opened for user root(uid=0) by (uid=0)
+Sep 14 13:17:01 ip-10-0-7-236 CRON[3022]: pam_unix(cron:session): session closed for user root
+Sep 14 13:17:50 ip-10-0-7-236 sshd[3025]: error: kex_exchange_identification: Connection closed by remote host
+Sep 14 13:17:50 ip-10-0-7-236 sshd[3025]: Connection closed by 196.200.37.50 port 56302
+Sep 14 13:18:14 ip-10-0-7-236 sshd[3026]: error: kex_exchange_identification: Connection closed by remote host
+Sep 14 13:18:14 ip-10-0-7-236 sshd[3026]: Connection closed by 196.200.37.50 port 53744
+Sep 14 13:19:06 ip-10-0-7-236 sshd[3027]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=171.235.42.109  user=root
+Sep 14 13:19:08 ip-10-0-7-236 sshd[3027]: Failed password for root from 171.235.42.109 port 11988 ssh2
+Sep 14 13:19:09 ip-10-0-7-236 sshd[3027]: Connection closed by authenticating user root 171.235.42.109 port 11988 [preauth]
+Sep 14 13:39:01 ip-10-0-7-236 CRON[3041]: pam_unix(cron:session): session opened for user root(uid=0) by (uid=0)
+Sep 14 13:39:01 ip-10-0-7-236 CRON[3041]: pam_unix(cron:session): session closed for user root
+Sep 14 13:43:00 ip-10-0-7-236 sshd[3096]: Invalid user user from 212.116.238.51 port 16729
+Sep 14 13:43:00 ip-10-0-7-236 sshd[3096]: pam_unix(sshd:auth): check pass; user unknown
+Sep 14 13:43:00 ip-10-0-7-236 sshd[3096]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=212.116.238.51 
+Sep 14 13:43:02 ip-10-0-7-236 sshd[3096]: Failed password for invalid user user from 212.116.238.51 port 16729 ssh2
+Sep 14 13:43:04 ip-10-0-7-236 sshd[3096]: Received disconnect from 212.116.238.51 port 16729:11: Client disconnecting normally [preauth]
+Sep 14 13:43:04 ip-10-0-7-236 sshd[3096]: Disconnected from invalid user user 212.116.238.51 port 16729 [preauth]
+Sep 14 13:43:15 ip-10-0-7-236 sshd[3098]: error: kex_exchange_identification: Connection closed by remote host
+Sep 14 13:43:15 ip-10-0-7-236 sshd[3098]: Connection closed by 64.89.160.135 port 58000
+Sep 14 14:09:01 ip-10-0-7-236 CRON[3128]: pam_unix(cron:session): session opened for user root(uid=0) by (uid=0)
+Sep 14 14:09:01 ip-10-0-7-236 CRON[3128]: pam_unix(cron:session): session closed for user root
+Sep 14 14:16:53 ip-10-0-7-236 sshd[3180]: error: kex_exchange_identification: Connection closed by remote host
+Sep 14 14:16:53 ip-10-0-7-236 sshd[3180]: Connection closed by 152.231.109.13 port 39288
+Sep 14 14:17:01 ip-10-0-7-236 CRON[3181]: pam_unix(cron:session): session opened for user root(uid=0) by (uid=0)
+Sep 14 14:17:01 ip-10-0-7-236 CRON[3181]: pam_unix(cron:session): session closed for user root
+Sep 14 14:17:41 ip-10-0-7-236 sshd[3189]: error: kex_exchange_identification: Connection closed by remote host
+Sep 14 14:17:41 ip-10-0-7-236 sshd[3189]: Connection closed by 84.54.72.65 port 60154
+Sep 14 14:27:58 ip-10-0-7-236 sshd[3192]: Invalid user squid from 116.110.21.251 port 53804
+Sep 14 14:27:58 ip-10-0-7-236 sshd[3192]: Connection closed by invalid user squid 116.110.21.251 port 53804 [preauth]
+Sep 14 14:28:11 ip-10-0-7-236 sshd[3195]: Invalid user admin from 116.110.21.251 port 39858
+Sep 14 14:28:48 ip-10-0-7-236 sshd[3199]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=116.110.21.251  user=root
+Sep 14 14:28:49 ip-10-0-7-236 sshd[3199]: Failed password for root from 116.110.21.251 port 33528 ssh2
+Sep 14 14:28:51 ip-10-0-7-236 sshd[3199]: Connection closed by authenticating user root 116.110.21.251 port 33528 [preauth]
+Sep 14 14:29:54 ip-10-0-7-236 sshd[3197]: Connection closed by authenticating user root 116.110.21.251 port 51678 [preauth]
+Sep 14 14:32:51 ip-10-0-7-236 sshd[3203]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=171.235.42.109  user=root
+Sep 14 14:32:53 ip-10-0-7-236 sshd[3203]: Failed password for root from 171.235.42.109 port 40510 ssh2
+Sep 14 14:32:55 ip-10-0-7-236 sshd[3203]: Connection closed by authenticating user root 171.235.42.109 port 40510 [preauth]
+Sep 14 14:37:42 ip-10-0-7-236 sshd[3206]: error: kex_exchange_identification: Connection closed by remote host
+Sep 14 14:37:42 ip-10-0-7-236 sshd[3206]: Connection closed by 75.24.216.151 port 54948
+Sep 14 14:39:01 ip-10-0-7-236 CRON[3207]: pam_unix(cron:session): session opened for user root(uid=0) by (uid=0)
+Sep 14 14:39:01 ip-10-0-7-236 CRON[3207]: pam_unix(cron:session): session closed for user root
+Sep 14 15:05:57 ip-10-0-7-236 sshd[3286]: error: kex_exchange_identification: Connection closed by remote host
+Sep 14 15:05:57 ip-10-0-7-236 sshd[3286]: Connection closed by 181.119.104.169 port 55006
+Sep 14 15:07:30 ip-10-0-7-236 sshd[3287]: error: kex_exchange_identification: Connection closed by remote host
+Sep 14 15:07:30 ip-10-0-7-236 sshd[3287]: Connection closed by 181.119.104.169 port 39400
+Sep 14 15:09:01 ip-10-0-7-236 CRON[3340]: pam_unix(cron:session): session opened for user root(uid=0) by (uid=0)
+Sep 14 15:09:01 ip-10-0-7-236 CRON[3340]: pam_unix(cron:session): session closed for user root
+Sep 14 15:10:37 ip-10-0-7-236 sshd[3343]: Connection reset by 112.148.16.1 port 61999 [preauth]
+Sep 14 15:11:00 ip-10-0-7-236 sshd[3345]: Accepted publickey for ubuntu from 112.148.16.1 port 51490 ssh2: ED25519 SHA256:qBf3xI/oOJHONVu0hPnujwaBF/DZlbfcPY5X59L3/vE
+Sep 14 15:11:00 ip-10-0-7-236 sshd[3345]: pam_unix(sshd:session): session opened for user ubuntu(uid=1000) by (uid=0)
+Sep 14 15:11:00 ip-10-0-7-236 systemd-logind[449]: New session 27 of user ubuntu.
+Sep 14 15:11:00 ip-10-0-7-236 systemd: pam_unix(systemd-user:session): session opened for user ubuntu(uid=1000) by (uid=0)
+Sep 14 15:11:02 ip-10-0-7-236 sshd[3432]: Received disconnect from 112.148.16.1 port 51490:11: disconnected by user
+Sep 14 15:11:02 ip-10-0-7-236 sshd[3432]: Disconnected from user ubuntu 112.148.16.1 port 51490
+Sep 14 15:11:02 ip-10-0-7-236 sshd[3345]: pam_unix(sshd:session): session closed for user ubuntu
+Sep 14 15:11:02 ip-10-0-7-236 systemd-logind[449]: Session 27 logged out. Waiting for processes to exit.
+Sep 14 15:11:02 ip-10-0-7-236 systemd-logind[449]: Removed session 27.
+Sep 14 15:11:12 ip-10-0-7-236 systemd: pam_unix(systemd-user:session): session closed for user ubuntu
+Sep 14 15:13:05 ip-10-0-7-236 sshd[3442]: Accepted publickey for ubuntu from 112.148.16.1 port 51566 ssh2: ED25519 SHA256:qBf3xI/oOJHONVu0hPnujwaBF/DZlbfcPY5X59L3/vE
+Sep 14 15:13:05 ip-10-0-7-236 sshd[3442]: pam_unix(sshd:session): session opened for user ubuntu(uid=1000) by (uid=0)
+Sep 14 15:13:05 ip-10-0-7-236 systemd-logind[449]: New session 29 of user ubuntu.
+Sep 14 15:13:05 ip-10-0-7-236 systemd: pam_unix(systemd-user:session): session opened for user ubuntu(uid=1000) by (uid=0)
+Sep 14 15:13:06 ip-10-0-7-236 sshd[3506]: Received disconnect from 112.148.16.1 port 51566:11: disconnected by user
+Sep 14 15:13:06 ip-10-0-7-236 sshd[3506]: Disconnected from user ubuntu 112.148.16.1 port 51566
+Sep 14 15:13:06 ip-10-0-7-236 sshd[3442]: pam_unix(sshd:session): session closed for user ubuntu
+Sep 14 15:13:06 ip-10-0-7-236 systemd-logind[449]: Session 29 logged out. Waiting for processes to exit.
+Sep 14 15:13:06 ip-10-0-7-236 systemd-logind[449]: Removed session 29.
+Sep 14 15:13:15 ip-10-0-7-236 sshd[3509]: Invalid user user from 212.116.238.51 port 29322
+Sep 14 15:13:15 ip-10-0-7-236 sshd[3509]: pam_unix(sshd:auth): check pass; user unknown
+Sep 14 15:13:15 ip-10-0-7-236 sshd[3509]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=212.116.238.51 
+Sep 14 15:13:16 ip-10-0-7-236 sshd[3512]: Accepted publickey for ubuntu from 112.148.16.1 port 51560 ssh2: ED25519 SHA256:qBf3xI/oOJHONVu0hPnujwaBF/DZlbfcPY5X59L3/vE
+Sep 14 15:13:16 ip-10-0-7-236 sshd[3512]: pam_unix(sshd:session): session opened for user ubuntu(uid=1000) by (uid=0)
+Sep 14 15:13:16 ip-10-0-7-236 systemd-logind[449]: New session 31 of user ubuntu.
+Sep 14 15:13:16 ip-10-0-7-236 systemd: pam_unix(systemd-user:session): session opened for user ubuntu(uid=1000) by (uid=0)
+Sep 14 15:13:16 ip-10-0-7-236 sudo:   ubuntu : PWD=/home/ubuntu ; USER=root ; COMMAND=/usr/bin/tail -n 500 /var/log/nginx/access.log
+Sep 14 15:13:16 ip-10-0-7-236 sudo: pam_unix(sudo:session): session opened for user root(uid=0) by (uid=1000)
+Sep 14 15:13:16 ip-10-0-7-236 sudo: pam_unix(sudo:session): session closed for user root
+Sep 14 15:13:17 ip-10-0-7-236 sshd[3567]: Received disconnect from 112.148.16.1 port 51560:11: disconnected by user
+Sep 14 15:13:17 ip-10-0-7-236 sshd[3567]: Disconnected from user ubuntu 112.148.16.1 port 51560
+Sep 14 15:13:17 ip-10-0-7-236 sshd[3512]: pam_unix(sshd:session): session closed for user ubuntu
+Sep 14 15:13:17 ip-10-0-7-236 systemd-logind[449]: Session 31 logged out. Waiting for processes to exit.
+Sep 14 15:13:17 ip-10-0-7-236 systemd-logind[449]: Removed session 31.
+Sep 14 15:13:17 ip-10-0-7-236 sshd[3509]: Failed password for invalid user user from 212.116.238.51 port 29322 ssh2
+Sep 14 15:13:17 ip-10-0-7-236 sshd[3570]: Accepted publickey for ubuntu from 112.148.16.1 port 51568 ssh2: ED25519 SHA256:qBf3xI/oOJHONVu0hPnujwaBF/DZlbfcPY5X59L3/vE
+Sep 14 15:13:17 ip-10-0-7-236 sshd[3570]: pam_unix(sshd:session): session opened for user ubuntu(uid=1000) by (uid=0)
+Sep 14 15:13:17 ip-10-0-7-236 systemd-logind[449]: New session 33 of user ubuntu.
+Sep 14 15:13:17 ip-10-0-7-236 sudo:   ubuntu : PWD=/home/ubuntu ; USER=root ; COMMAND=/usr/bin/tail -n 500 /var/log/auth.log
+Sep 14 15:13:17 ip-10-0-7-236 sudo: pam_unix(sudo:session): session opened for user root(uid=0) by (uid=1000)
+Sep 14 15:13:17 ip-10-0-7-236 sudo: pam_unix(sudo:session): session closed for user root
+Sep 14 15:13:17 ip-10-0-7-236 sshd[3616]: Received disconnect from 112.148.16.1 port 51568:11: disconnected by user
+Sep 14 15:13:17 ip-10-0-7-236 sshd[3616]: Disconnected from user ubuntu 112.148.16.1 port 51568
+Sep 14 15:13:17 ip-10-0-7-236 sshd[3570]: pam_unix(sshd:session): session closed for user ubuntu
+Sep 14 15:13:17 ip-10-0-7-236 systemd-logind[449]: Session 33 logged out. Waiting for processes to exit.
+Sep 14 15:13:17 ip-10-0-7-236 systemd-logind[449]: Removed session 33.
+Sep 14 15:13:17 ip-10-0-7-236 sshd[3619]: Accepted publickey for ubuntu from 112.148.16.1 port 51574 ssh2: ED25519 SHA256:qBf3xI/oOJHONVu0hPnujwaBF/DZlbfcPY5X59L3/vE
+Sep 14 15:13:17 ip-10-0-7-236 sshd[3619]: pam_unix(sshd:session): session opened for user ubuntu(uid=1000) by (uid=0)
+Sep 14 15:13:17 ip-10-0-7-236 systemd-logind[449]: New session 34 of user ubuntu.
+Sep 14 15:13:17 ip-10-0-7-236 sudo:   ubuntu : PWD=/home/ubuntu ; USER=root ; COMMAND=/usr/bin/tail -n 500 /var/log/audit/audit.log
+Sep 14 15:13:17 ip-10-0-7-236 sudo: pam_unix(sudo:session): session opened for user root(uid=0) by (uid=1000)
+Sep 14 15:13:17 ip-10-0-7-236 sudo: pam_unix(sudo:session): session closed for user root
+Sep 14 15:13:17 ip-10-0-7-236 sshd[3665]: Received disconnect from 112.148.16.1 port 51574:11: disconnected by user
+Sep 14 15:13:17 ip-10-0-7-236 sshd[3665]: Disconnected from user ubuntu 112.148.16.1 port 51574
+Sep 14 15:13:17 ip-10-0-7-236 sshd[3619]: pam_unix(sshd:session): session closed for user ubuntu
+Sep 14 15:13:17 ip-10-0-7-236 systemd-logind[449]: Session 34 logged out. Waiting for processes to exit.
+Sep 14 15:13:17 ip-10-0-7-236 systemd-logind[449]: Removed session 34.
+Sep 14 15:13:18 ip-10-0-7-236 sshd[3668]: Accepted publickey for ubuntu from 112.148.16.1 port 51482 ssh2: ED25519 SHA256:qBf3xI/oOJHONVu0hPnujwaBF/DZlbfcPY5X59L3/vE
+Sep 14 15:13:18 ip-10-0-7-236 sshd[3668]: pam_unix(sshd:session): session opened for user ubuntu(uid=1000) by (uid=0)
+Sep 14 15:13:18 ip-10-0-7-236 systemd-logind[449]: New session 35 of user ubuntu.
+Sep 14 15:13:18 ip-10-0-7-236 sudo:   ubuntu : PWD=/home/ubuntu ; USER=root ; COMMAND=/usr/bin/tail -n 500 /var/log/suricata/eve.json
+Sep 14 15:13:18 ip-10-0-7-236 sudo: pam_unix(sudo:session): session opened for user root(uid=0) by (uid=1000)
+Sep 14 15:13:18 ip-10-0-7-236 sudo: pam_unix(sudo:session): session closed for user root
+Sep 14 15:13:18 ip-10-0-7-236 sshd[3714]: Received disconnect from 112.148.16.1 port 51482:11: disconnected by user
+Sep 14 15:13:18 ip-10-0-7-236 sshd[3714]: Disconnected from user ubuntu 112.148.16.1 port 51482
+Sep 14 15:13:18 ip-10-0-7-236 sshd[3668]: pam_unix(sshd:session): session closed for user ubuntu
+Sep 14 15:13:18 ip-10-0-7-236 systemd-logind[449]: Session 35 logged out. Waiting for processes to exit.
+Sep 14 15:13:18 ip-10-0-7-236 systemd-logind[449]: Removed session 35.
+Sep 14 15:13:18 ip-10-0-7-236 sshd[3509]: Received disconnect from 212.116.238.51 port 29322:11: Client disconnecting normally [preauth]
+Sep 14 15:13:18 ip-10-0-7-236 sshd[3509]: Disconnected from invalid user user 212.116.238.51 port 29322 [preauth]
+Sep 14 15:13:28 ip-10-0-7-236 systemd: pam_unix(systemd-user:session): session closed for user ubuntu
+Sep 14 15:17:01 ip-10-0-7-236 CRON[3718]: pam_unix(cron:session): session opened for user root(uid=0) by (uid=0)
+Sep 14 15:17:01 ip-10-0-7-236 CRON[3718]: pam_unix(cron:session): session closed for user root
+Sep 14 15:20:47 ip-10-0-7-236 sshd[3723]: Accepted publickey for ubuntu from 112.148.16.1 port 51552 ssh2: ED25519 SHA256:qBf3xI/oOJHONVu0hPnujwaBF/DZlbfcPY5X59L3/vE
+Sep 14 15:20:47 ip-10-0-7-236 sshd[3723]: pam_unix(sshd:session): session opened for user ubuntu(uid=1000) by (uid=0)
+Sep 14 15:20:47 ip-10-0-7-236 systemd-logind[449]: New session 37 of user ubuntu.
+Sep 14 15:20:47 ip-10-0-7-236 systemd: pam_unix(systemd-user:session): session opened for user ubuntu(uid=1000) by (uid=0)
+Sep 14 15:20:48 ip-10-0-7-236 sudo:   ubuntu : PWD=/home/ubuntu ; USER=root ; COMMAND=/usr/bin/tail -n 500 /var/log/nginx/access.log
+Sep 14 15:20:48 ip-10-0-7-236 sudo: pam_unix(sudo:session): session opened for user root(uid=0) by (uid=1000)
+Sep 14 15:20:48 ip-10-0-7-236 sudo: pam_unix(sudo:session): session closed for user root
+Sep 14 15:20:48 ip-10-0-7-236 sshd[3789]: Received disconnect from 112.148.16.1 port 51552:11: disconnected by user
+Sep 14 15:20:48 ip-10-0-7-236 sshd[3789]: Disconnected from user ubuntu 112.148.16.1 port 51552
+Sep 14 15:20:48 ip-10-0-7-236 sshd[3723]: pam_unix(sshd:session): session closed for user ubuntu
+Sep 14 15:20:48 ip-10-0-7-236 systemd-logind[449]: Session 37 logged out. Waiting for processes to exit.
+Sep 14 15:20:48 ip-10-0-7-236 systemd-logind[449]: Removed session 37.
+Sep 14 15:20:48 ip-10-0-7-236 sshd[3792]: Accepted publickey for ubuntu from 112.148.16.1 port 51562 ssh2: ED25519 SHA256:qBf3xI/oOJHONVu0hPnujwaBF/DZlbfcPY5X59L3/vE
+Sep 14 15:20:48 ip-10-0-7-236 sshd[3792]: pam_unix(sshd:session): session opened for user ubuntu(uid=1000) by (uid=0)
+Sep 14 15:20:48 ip-10-0-7-236 systemd-logind[449]: New session 39 of user ubuntu.

@@ -123,27 +123,31 @@ def build_default_registry(
         ),
         ToolSpec(
             "fetch_auth_log",
-            "로그인·권한상승 흔적이 있었는지 조회한다",
+            "로그인·권한상승 흔적이 있었는지 조회한다 (ssh_login/sudo/pam 이벤트로 "
+            "구조화, 결과가 많으면 has_more/next_offset으로 이어서 조회 가능)",
             ["host", "start_time", "end_time"],
-            ["user", "src_ip"],
+            ["user", "src_ip", "event_type", "result", "limit", "offset"],
         ),
         ToolSpec(
             "fetch_audit_log",
-            "파일 생성·변조·명령 실행이 있었는지 조회한다 (내부에서 resolve_saddr 수행)",
+            "파일 생성·변조·명령 실행이 있었는지 조회한다 "
+            "(uid/euid/session_type/exec_args/target_file까지 구조화해서 반환)",
             ["host", "start_time", "end_time"],
-            ["event_type", "pid", "user"],
+            ["event_type", "pid", "ppid", "user", "serial", "exclude_interactive"],
         ),
         ToolSpec(
             "fetch_network_log",
-            "네트워크 후속 행위(외부 통신 등)가 있었는지 조회한다",
+            "네트워크 후속 행위(외부 통신 등)가 있었는지 조회한다 (alert_signature/"
+            "protocol까지 구조화, 결과가 많으면 has_more/next_offset으로 이어서 조회 가능)",
             ["host", "start_time", "end_time"],
-            ["src_ip", "dst_port", "alert_only"],
+            ["src_ip", "dst_ip", "src_port", "dst_port", "protocol", "alert_only", "limit", "offset"],
         ),
         ToolSpec(
             "get_process_tree",
-            "이 프로세스가 어디에서 실행됐는지(부모/자식 관계) 조회한다",
+            "이 프로세스가 어디에서 실행됐는지(부모/자식 관계) 조회한다 "
+            "(audit 로그의 pid/ppid 관측 기반 추정, 확정된 생성 트리 아님)",
             ["host", "pid"],
-            [],
+            ["timestamp", "start_time", "end_time"],
         ),
         ToolSpec(
             "resolve_ip_geo",

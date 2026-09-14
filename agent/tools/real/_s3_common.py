@@ -1,8 +1,11 @@
-﻿"""S3에서 NDJSON 형태로 쌓인 로그를 읽는 공용 헬퍼.
+﻿"""S3에서 로그를 읽는 공용 헬퍼.
 
 fetch_audit_log.py(agent/tools/real/)와 raw_log_ingestion.py(agent/) 양쪽에서
-같은 S3 읽기 로직이 필요해서 여기로 분리했다. 시간 파싱/날짜 파티션 계산/NDJSON
-읽기처럼 "S3 + 정규화 로그 스키마"에 관한 로직만 여기 둔다.
+같은 S3 읽기 로직이 필요해서 여기로 분리했다. "S3 + 정규화 로그 스키마"에 관한
+로직만 여기 둔다.
+
+(2026-09-13: auditd 멀티라인 그룹핑은 팀원이 만든 정식 파서로 교체되면서
+_audit_parser.py로 옮겨갔다. 이 파일엔 더 이상 audit 전용 로직이 없다.)
 """
 
 from __future__ import annotations
@@ -51,11 +54,8 @@ def list_and_read_ndjson(
     """prefix 아래 모든 오브젝트를 나열해서 NDJSON을 파싱해 반환.
     반환값: (파싱된 레코드 리스트, 스캔한 오브젝트 개수)
 
-    주의: 실측 결과(S3 raw/ 폴더 직접 확인) auditd 로그는 NDJSON이 아니라
-    정규화 이전의 raw 텍스트(type=SYSCALL 멀티라인 구조)로 확인됐다.
-    audit 로그는 이 함수 대신 list_and_read_text() + fetch_audit_log.py의
-    group_raw_audit_events()를 쓴다. 이 함수는 정말 NDJSON인 소스(예: Suricata
-    eve.json처럼 원래부터 한 줄 = 이벤트 하나인 포맷)에만 쓴다.
+    정말 NDJSON인 소스(예: Suricata eve.json처럼 원래부터 한 줄 = 이벤트 하나인
+    포맷)에만 쓴다. audit은 raw 텍스트라 list_and_read_text() + _audit_parser.py를 쓴다.
     """
     records: List[Dict[str, Any]] = []
     scanned_objects = 0
