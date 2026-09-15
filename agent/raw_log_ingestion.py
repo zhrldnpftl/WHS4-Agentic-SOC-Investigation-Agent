@@ -17,9 +17,11 @@ sample_web.log가 그 형식이 아니라 한 줄 = JSON 객체인 nginx JSON �
 확인돼서(2026-09-14) agent/tools/parsers/nginx_json_parser.py(실측 기반으로
 새로 작성)로 교체했다. auth 소스도 agent/tools/parsers/auth_parser.py의
 parse_auth_events()(auth tool 담당 팀원이 실제 auth.log로 만든 정식 파서)를
-재사용해서 ssh_login/sudo/pam 이벤트로 구조화한다. network는 아직 실제
-데이터로 검증되지 않았으므로, 일단 원시 텍스트를 줄 단위로만 넘기는 보수적인
-방식으로 처리한다 — 실제 포맷이 확인되면 그에 맞게 고치면 된다.
+재사용해서 ssh_login/sudo/pam 이벤트로 구조화한다. network 소스도
+agent/tools/parsers/network_parser.py의 parse_network_events()(조사 단계의
+fetch_network_log.py와 동일한 파서)를 재사용해서 src/dst ip·port, protocol,
+alert_signature까지 구조화한다 — 4계층 전부 조사 단계와 동일한 파서를 쓰는
+상태다.
 
 *** 현재 한계 ***
 팀 결정사항 기준으로 S3 로그 수집이 실제로 켜져 있다고 확인된 건 auditd(audit) 뿐이다.
@@ -40,6 +42,7 @@ from typing import Any, Dict, List, Optional
 
 from .tools.parsers.audit_parser import parse_audit_events
 from .tools.parsers.auth_parser import parse_auth_events
+from .tools.parsers.network_parser import parse_network_events
 from .tools.parsers.nginx_json_parser import nginx_ts_to_dt, parse_nginx_json_line
 from .tools.real._s3_common import daterange, list_and_read_text, parse_iso
 
@@ -95,14 +98,16 @@ def _events_from_text(source_key: str, text: str) -> List[Dict[str, Any]]:
             e["_ts"] = parse_iso(ts_str) if ts_str else None
         return events
 
-    # network: 실제 포맷 미확인 상태라 우선 줄 단위로만 넘긴다.
-    # 아직 타임스탬프를 뽑아내는 규칙이 없어 _ts=None으로 두고, 시간 필터를 건너뛴다
-    # (실제 포맷이 확인되면 여기서 timestamp를 파싱해 채우면 된다).
-    return [
-        {"time": None, "raw_line": line, "_ts": None}
-        for line in text.splitlines()
-        if line.strip()
-    ]
+    if source_key == "network":
+        events = parse_network_events(text)  # 필터 없이 전부 — 시간 필터는 이 함수 밖에서 적용
+        for e in events:
+            ts_str = e.get("timestamp")
+            e["_ts"] = parse_iso(ts_str) if ts_str else None
+        return events
+
+    # 여기 도달하면 알 수 없는 source_key다 (지금은 4계층 다 위에서 처리되므로
+    # 실제로는 호출될 일이 없다) — 안전하게 빈 리스트를 반환한다.
+    return []
 
 
 def _read_layer_text(

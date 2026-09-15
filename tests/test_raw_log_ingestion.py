@@ -4,10 +4,12 @@
 - audit 소스는 parsers/audit_parser.py의 parse_audit_events()로 구조화된 이벤트가 되는지
 - web 소스는 parsers/nginx_json_parser.py의 parse_nginx_json_line()으로 구조화된 이벤트가 되는지
   (시간 필터까지 적용되는지)
+- network 소스도 parsers/network_parser.py의 parse_network_events()로 구조화되는지
+  (2026-09-14: network만 줄 단위 fallback이던 것을 나머지 계층과 동일하게 맞춤)
 - 여러 source_type(web/auth/audit/network)을 다 훑는지
 - 데이터 없는 source_type은 에러 없이 조용히 건너뛰는지 (현재 auditd/nginx만 연결된 상태 재현)
 - 각 레코드에 _source_type이 붙는지
-를 검증한다. (2026-09-14: web도 팀원이 만든 정식 파서로 처리 방식이 바뀜)
+를 검증한다.
 """
 
 from __future__ import annotations
@@ -128,6 +130,47 @@ def test_fetch_recent_raw_logs_merges_multiple_source_types_and_skips_missing() 
         _uninstall_fake_boto3()
 
 
+def test_fetch_recent_raw_logs_structures_network_source() -> None:
+    """network 소스도 audit/web/auth와 동일하게 network_parser.py로 구조화되는지,
+    시간 필터가 적용되는지 확인한다. (2026-09-14: network만 줄 단위 fallback이던
+    것을 audit/web/auth와 동일한 패턴으로 맞춤)
+    """
+    now = datetime.now(timezone.utc)
+    today = now.strftime("%Y-%m-%d")
+
+    network_prefix = f"raw/source_type=suricata/host=web-01/dt={today}/"
+
+    recent_iso = now_minus(now, minutes=2)
+    old_iso = now_minus(now, hours=5)
+    network_text = (
+        '{"timestamp":"%s","event_type":"alert","src_ip":"77.239.124.213",'
+        '"dest_ip":"10.0.7.236","src_port":51234,"dest_port":22,"proto":"TCP",'
+        '"alert":{"signature":"ET SCAN SSH BruteForce"}}\n'
+        '{"timestamp":"%s","event_type":"alert","src_ip":"9.9.9.9",'
+        '"dest_ip":"10.0.7.236","src_port":1,"dest_port":1,"proto":"TCP",'
+        '"alert":{"signature":"old alert"}}\n'
+    ) % (recent_iso, old_iso)
+    network_text = network_text.encode("utf-8")
+
+    fake_client = _FakeS3Client({network_prefix: {"eve.json": network_text}})
+    _install_fake_boto3(fake_client)
+
+    try:
+        from agent.raw_log_ingestion import fetch_recent_raw_logs
+
+        records = fetch_recent_raw_logs(host="web-01", minutes=10, source_types=["network"])
+
+        assert len(records) == 1, "시간 범위 밖의 old alert(5시간 전)는 제외되어야 한다"
+        record = records[0]
+        assert record["_source_type"] == "network"
+        assert record["src_ip"] == "77.239.124.213"
+        assert record["alert_signature"] == "ET SCAN SSH BruteForce"
+        print("[PASS] test_fetch_recent_raw_logs_structures_network_source")
+    finally:
+        _uninstall_fake_boto3()
+
+
 if __name__ == "__main__":
     test_fetch_recent_raw_logs_merges_multiple_source_types_and_skips_missing()
+    test_fetch_recent_raw_logs_structures_network_source()
     print("\n모든 테스트 통과.")
