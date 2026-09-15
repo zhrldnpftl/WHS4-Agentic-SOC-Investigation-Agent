@@ -18,6 +18,8 @@ import json
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
+from ..real._s3_common import parse_iso
+
 
 def _normalize_protocol(protocol: Optional[str]) -> Optional[str]:
     if not protocol:
@@ -33,7 +35,10 @@ def _extract_timestamp(record: Dict[str, Any]) -> Optional[datetime]:
     if not isinstance(value, str):
         return None
     try:
-        return datetime.fromisoformat(value.replace("Z", "+00:00"))
+        # _s3_common.parse_iso()는 "+0000"처럼 콜론 없는 오프셋(Suricata가
+        # 실제로 이렇게 씀, Python 3.10에서는 이거 하나만으론 못 읽음)도
+        # 정규화해서 읽는다 — 여기서도 그대로 재사용해서 같은 버그를 반복하지 않는다.
+        return parse_iso(value)
     except ValueError:
         return None
 
