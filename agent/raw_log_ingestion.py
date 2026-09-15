@@ -44,7 +44,8 @@ from .tools.parsers.audit_parser import parse_audit_events
 from .tools.parsers.auth_parser import parse_auth_events
 from .tools.parsers.network_parser import parse_network_events
 from .tools.parsers.nginx_json_parser import nginx_ts_to_dt, parse_nginx_json_line
-from .tools.real._s3_common import daterange, list_and_read_text, parse_iso
+from .tools.real._s3_common import daterange, list_and_read_text
+from .tools.time_utils import parse_iso
 
 DEFAULT_BUCKET = "ogwanwan-shop-bucket"
 

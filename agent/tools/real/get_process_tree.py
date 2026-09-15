@@ -31,7 +31,8 @@ from typing import Any, Dict, List
 
 from ..parsers.audit_parser import parse_audit_events
 from ..parsers.process_tree import build_ancestry_chain
-from ._s3_common import daterange, list_and_read_text, parse_iso
+from ._s3_common import daterange, list_and_read_text
+from ..time_utils import parse_iso
 
 DEFAULT_BUCKET = "ogwanwan-shop-bucket"
 DEFAULT_LOOKBACK_HOURS = 24  # 조상을 찾을 때 얼마나 과거까지 audit 로그를 훑을지

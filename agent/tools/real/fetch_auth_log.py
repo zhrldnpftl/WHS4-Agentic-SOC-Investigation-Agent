@@ -38,7 +38,8 @@ from datetime import datetime
 from typing import Any, Dict, List
 
 from ..parsers.auth_parser import parse_auth_events
-from ._s3_common import daterange, list_and_read_text, parse_iso
+from ._s3_common import daterange, list_and_read_text
+from ..time_utils import parse_iso
 
 DEFAULT_BUCKET = "ogwanwan-shop-bucket"
 S3_SOURCE_TYPE = "auth"

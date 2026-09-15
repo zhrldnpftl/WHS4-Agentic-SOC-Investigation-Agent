@@ -18,7 +18,7 @@ import json
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
-from ..real._s3_common import parse_iso
+from ..time_utils import parse_iso
 
 
 def _normalize_protocol(protocol: Optional[str]) -> Optional[str]:
