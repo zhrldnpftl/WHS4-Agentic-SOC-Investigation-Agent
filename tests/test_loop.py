@@ -494,39 +494,14 @@ def test_src_ip_seed_requires_network_log() -> None:
 
 
 def test_real_tool_auto_discovery() -> None:
-    """agent/tools/real/<도구이름>.py에 같은 이름의 함수를 넣으면 자동으로 연결되는지 확인.
-    실제 팀원이 파일을 추가하는 상황을 그대로 재현: 파일을 실제로 썼다가 테스트 후 원복한다.
+    """등록된 모든 도구가 agent/tools/real/<도구이름>.py의 실제 함수로 자동 연결되는지 확인.
+    registry는 실제 구현을 못 찾으면 목업으로 조용히 폴백하므로, 운영에서 목업이 붙는 것을 여기서 잡는다.
     """
-    import importlib
-    import sys
-
-    agent_dir = pathlib.Path(__file__).resolve().parent.parent / "agent"
-    target_path = agent_dir / "tools" / "real" / "resolve_ip_geo.py"
-    module_name = "agent.tools.real.resolve_ip_geo"
-
-    backup = target_path.read_text(encoding="utf-8") if target_path.exists() else None
-
-    try:
-        target_path.write_text(
-            "def resolve_ip_geo(args):\n"
-            "    return {'count': 1, 'summary': 'REAL-TOOL-USED', 'records': []}\n",
-            encoding="utf-8",
-        )
-        sys.modules.pop(module_name, None)
-        importlib.invalidate_caches()
-
-        registry = build_default_registry()  # 이 테스트는 자동 탐색 자체를 검증하는 거라 목업 고정 X
-        result = registry.call("resolve_ip_geo", {"ip": "1.2.3.4"})
-
-        assert result["summary"] == "REAL-TOOL-USED", "real/ 폴더의 실제 함수가 사용되어야 한다"
-        print("[PASS] test_real_tool_auto_discovery")
-    finally:
-        sys.modules.pop(module_name, None)
-        if backup is not None:
-            target_path.write_text(backup, encoding="utf-8")
-        elif target_path.exists():
-            target_path.unlink()
-        importlib.invalidate_caches()
+    registry = build_default_registry()  # 이 테스트는 자동 탐색 자체를 검증하는 거라 목업 고정 X
+    for spec in registry.list_tools():
+        assert spec.handler.__module__ == f"agent.tools.real.{spec.name}", (
+            f"{spec.name}에 real/ 실제 함수가 아닌 {spec.handler.__module__}가 연결됨")
+    print("[PASS] test_real_tool_auto_discovery")
 
 
 if __name__ == "__main__":

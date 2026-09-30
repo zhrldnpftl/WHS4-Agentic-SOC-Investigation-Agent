@@ -73,7 +73,7 @@ python -m tests.test_consistency --runs 4 --legacy     # 0918 조건(사전 조�
 - `fetch_network_log`의 `ip` 필터는 방향 무관(src·dest 모두 매칭)이다. 역방향 셸(서버 → 공격자)을 잡기 위해서다. `ip`/`src_ip`/`dst_ip`에 IP가 아닌 값(도메인)이 오면 `ValueError`로 알린다(조용한 0건 방지, 실패 호출로 LLM에게 전달).
 - audit의 `user` 필터는 **실행 계정**이다(sudo 뒤에는 root). 로그인 세션을 따라가려면 `ppid`를 쓴다.
 
-`agent/tools/registry.py::build_default_registry()`가 7개 도구(`fetch_event_logs`, `fetch_web_log`, `fetch_auth_log`, `fetch_audit_log`, `fetch_network_log`, `get_process_tree`, `resolve_ip_geo`)를 등록한다. 실제 구현은 **파일명 = 함수명 = 도구명** 규칙으로 `agent/tools/real/<도구이름>.py`에서 자동 탐색되고, 없으면 `mock_tools.py`의 목업으로 **에러 없이 조용히** 폴백한다. 새 도구를 연결한 뒤에는 `registry.get(name).handler`로 실제 함수가 붙었는지 확인할 것. `resolve_ip_geo`는 `main.py`에서 `exclude`로 빠져 있다.
+`agent/tools/registry.py::build_default_registry()`가 6개 도구(`fetch_event_logs`, `fetch_web_log`, `fetch_auth_log`, `fetch_audit_log`, `fetch_network_log`, `get_process_tree`)를 등록한다. 실제 구현은 **파일명 = 함수명 = 도구명** 규칙으로 `agent/tools/real/<도구이름>.py`에서 자동 탐색되고, 없으면 `mock_tools.py`의 목업으로 **에러 없이 조용히** 폴백한다. 새 도구를 연결한 뒤에는 `registry.get(name).handler`로 실제 함수가 붙었는지 확인할 것(`tests/test_loop.py::test_real_tool_auto_discovery`가 등록된 모든 도구의 handler가 `agent.tools.real.<도구이름>`인지 검사한다). 구현이 없던 `resolve_ip_geo`(IP 국가 조회, 목업만 있었고 `main.py`에서 제외)는 0930에 삭제했다.
 
 ### 상태와 신뢰도 — `agent/models.py`, `agent/loop.py`
 - `AgentState`가 facts/hypotheses/evidence/tool_calls/raw_refs를 누적한다. 동일 `(tool_name, args)` 재호출은 `already_called()`로 차단된다.

@@ -41,7 +41,7 @@ LLM은 **"무엇을 조회할지"와 "어떻게 판정할지"를 제안**하고,
 | 번호 | 위치 | 하는 일 |
 |---|---|---|
 | [1] | `main.py` 맨 아래 | `python main.py <사건 파일>` → `main()` |
-| [2] | `registry.build_default_registry()` | 7개 도구 등록. `agent/tools/real/<도구이름>.py`에 같은 이름 함수가 있으면 그걸 쓰고, 없으면 목업. `resolve_ip_geo`는 제외 |
+| [2] | `registry.build_default_registry()` | 6개 도구 등록. `agent/tools/real/<도구이름>.py`에 같은 이름 함수가 있으면 그걸 쓰고, 없으면 목업 |
 | [3] | `agent/llm_provider.build_llm_client()` | `.env`의 `LLM_PROVIDER`(기본 anthropic = Claude)로 클라이언트 생성 |
 | [4] | `incident_input.load_incidents()` | 사건 파일 읽기. JSON 객체 하나, JSON 배열, 한 줄에 한 건인 JSONL(1차 탐지 출력)을 받음. 각 사건에 `incident_id` 필수 |
 | [5] | `pipeline.run_investigation_pipeline()` | 사건을 받은 순서대로 조사. `network_precheck=True`, `strict_termination=True`, `max_calls=8`, `confidence_threshold=0.85` |

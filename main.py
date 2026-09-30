@@ -84,8 +84,7 @@ def main(argv=None) -> None:
 
     # [2] → agent/tools/registry.py build_default_registry()
     #     agent/tools/real/ 폴더에서 "파일명 == 함수명"인 도구를 자동으로 찾아 등록한다.
-    #     resolve_ip_geo는 구현은 있지만 지금 우선순위가 아니라서 뺀다.
-    tool_registry = build_default_registry(exclude=["resolve_ip_geo"])
+    tool_registry = build_default_registry()
     # [3] → agent/llm_provider.py build_llm_client(): 기본 Claude, LLM_PROVIDER=gemini면 Gemini
     llm_client = build_llm_client()
 

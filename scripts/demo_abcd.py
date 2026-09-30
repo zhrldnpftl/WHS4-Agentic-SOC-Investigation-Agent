@@ -114,7 +114,7 @@ def run_demo(layers=LAYERS):
     client = ScriptedDemoClient(layers)
     incident = demo_incident(layers)
     with sample_environment():
-        registry = build_default_registry(exclude=["resolve_ip_geo"])
+        registry = build_default_registry()
         names = [f"fetch_{layer}_log" for layer in layers] + ["fetch_event_logs", "get_process_tree"]
         for name in names:
             if registry.get(name).handler.__module__ != f"agent.tools.real.{name}":

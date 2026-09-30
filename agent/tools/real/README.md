@@ -6,12 +6,12 @@
 
 ## 등록해야 하는 6개 도구 이름 (agent/tools/registry.py의 tool_defs 참고)
 
+- `fetch_event_logs`
 - `fetch_web_log`
 - `fetch_auth_log`
 - `fetch_audit_log`
 - `fetch_network_log`
-- `get_process_tree` (미구현)
-- `resolve_ip_geo` (미구현)
+- `get_process_tree`
 
 ## 규칙
 

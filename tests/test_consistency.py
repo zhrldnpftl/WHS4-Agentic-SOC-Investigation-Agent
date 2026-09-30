@@ -59,8 +59,7 @@ def run_once_with_retry(run_index: int, seed: Dict[str, Any], strict: bool = Tru
     for attempt in range(1, max_retries + 1):
         try:
             llm = build_llm_client()
-            # main.py와 같은 조건: resolve_ip_geo는 목업이라 LLM에게 가짜 IP 정보를 줄 수 있어 제외
-            registry = build_default_registry(exclude=["resolve_ip_geo"])
+            registry = build_default_registry()  # main.py와 같은 도구 구성
             # strict=True: main.py와 같은 조건. False(--legacy): 0918처럼 network 사전 조회와
             # no_more_evidence 관문 없이 LLM이 고르는 도구만 사용 (0918 대비 비교용)
             agent = InvestigationAgent(llm, registry, max_calls=8, confidence_threshold=0.85,

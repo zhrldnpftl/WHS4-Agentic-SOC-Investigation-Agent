@@ -177,12 +177,6 @@ def build_default_registry(
             ["host", "pid"],
             ["timestamp", "start_time", "end_time"],
         ),
-        ToolSpec(
-            "resolve_ip_geo",
-            "IP의 국가/평판 정보를 조회한다",
-            ["ip"],
-            [],
-        ),
     ]
 
     registry = ToolRegistry()
