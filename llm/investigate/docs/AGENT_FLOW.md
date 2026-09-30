@@ -233,7 +233,7 @@ LLM이 "끝내자"고 해도 아래에 걸리면 거부하고 사유를 다음 �
 
 | 변수 | 뜻 |
 |---|---|
-| `ANTHROPIC_API_KEY` / `GEMINI_API_KEY`, `LLM_PROVIDER`, `CLAUDE_MODEL`, `CLAUDE_EFFORT`, `CLAUDE_REFUSAL_FALLBACK_MODEL`, `GEMINI_MODEL` | LLM (기본 anthropic, Claude 모델 기본 claude-sonnet-5, 거절 시 대체 모델 기본 claude-sonnet-4-6, Gemini 모델 기본 gemini-3.5-flash-lite) |
+| `INVESTIGATION_ANTHROPIC_API_KEY`(조사 전용, 먼저 읽음) → `ANTHROPIC_API_KEY` / `GEMINI_API_KEY`, `LLM_PROVIDER`, `CLAUDE_MODEL`, `CLAUDE_EFFORT`, `CLAUDE_REFUSAL_FALLBACK_MODEL`, `GEMINI_MODEL` | LLM (기본 anthropic, Claude 모델 기본 claude-sonnet-5, 거절 시 대체 모델 기본 claude-sonnet-4-6, Gemini 모델 기본 gemini-3.5-flash-lite) |
 | `HOST` | 사건에 host가 없을 때 채우는 수집 서버 이름 (비우면 web-01). 1차 탐지 Incident에는 host가 없다 |
 | `APACHE/AUTH/AUDIT/SURICATA_LOG_PATH` | 읽을 로그 파일 경로 (EC2: `/var/log/...`). **필수** |
 | `AUTH_LOG_YEAR`, `LOG_LOCAL_HOST` | 선택 (로컬 샘플용) |

@@ -33,6 +33,15 @@ import 방식
   실행해도 같다). 폴더가 없거나 최상위 이름 tools가 다른 모듈을 가리키면 목업으로 넘어가지 않고
   ImportError를 낸다.
 
+.env 격리
+  1차 탐지 원본(fetch_apache_log/fetch_auth_log/fetch_network_log)은 import될 때 load_dotenv()를 부른다.
+  python-dotenv는 인자가 없으면 "부른 파일 위치"부터 위로 .env를 찾으므로 저장소 루트 .env(1차 탐지 설정)를
+  읽게 되고, 조사 쪽 .env(main.py가 먼저 읽음)에 없는 키(AUTH_LOG_YEAR, ANTHROPIC_API_KEY 등)를 조용히
+  채운다. 또 SERVER_PUBLIC_IP, SURICATA_SENSOR_ID(함수 기본 인자로 고정됨)처럼 import 시점에 모듈 변수로
+  저장되는 값은 import 뒤에 환경변수를 지워도 루트 값으로 남는다. 그래서 import하는 동안에는 원본의
+  load_dotenv()를 아무것도 하지 않게 막고(_without_detection_dotenv), 그래도 새로 생긴 환경변수가 있으면
+  되돌린다. .env는 진입점(main.py, scripts/verify_all_tools.py 등)이 스스로 읽는다.
+
 참고
   - web은 nginx가 아니라 apache access.log를 쓴다. EC2에서 nginx(리버스 프록시)와 apache(백엔드,
     127.0.0.1:8080)가 같이 떠 있고, apache 로그가 1차 탐지팀 형식과 컬럼 단위로 일치했다.
@@ -47,6 +56,7 @@ import os
 import re
 import sys
 import tempfile
+from contextlib import contextmanager
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -80,11 +90,33 @@ def _load_detection_module(name: str):
     return module
 
 
-_apache_module = _load_detection_module("fetch_apache_log")
-_normalize_web_events = _apache_module.fetch_apache_log
-_normalize_auth_events = _load_detection_module("fetch_auth_log").fetch_auth_log
-_normalize_audit_events = _load_detection_module("fetch_audit_log").fetch_audit_log
-_normalize_network_events = _load_detection_module("fetch_network_log").fetch_network_log
+@contextmanager
+def _without_detection_dotenv():
+    """1차 탐지 원본을 import하는 동안 그 안의 load_dotenv()가 루트 .env를 읽지 못하게 한다(모듈 docstring 참조)."""
+    try:
+        import dotenv
+    except ImportError:  # dotenv가 없으면 원본도 load_dotenv를 건너뛴다
+        dotenv = None
+    original = dotenv.load_dotenv if dotenv else None
+    before = set(os.environ)
+    if dotenv:
+        # 원본은 import 중에 `from dotenv import load_dotenv`로 가져가므로 그동안만 바꿔 둔다
+        dotenv.load_dotenv = lambda *args, **kwargs: False
+    try:
+        yield
+    finally:
+        if dotenv:
+            dotenv.load_dotenv = original
+        for key in set(os.environ) - before:  # 그래도 import 중에 새로 생긴 환경변수는 되돌린다
+            del os.environ[key]
+
+
+with _without_detection_dotenv():
+    _apache_module = _load_detection_module("fetch_apache_log")
+    _normalize_web_events = _apache_module.fetch_apache_log
+    _normalize_auth_events = _load_detection_module("fetch_auth_log").fetch_auth_log
+    _normalize_audit_events = _load_detection_module("fetch_audit_log").fetch_audit_log
+    _normalize_network_events = _load_detection_module("fetch_network_log").fetch_network_log
 
 
 def server_public_ip() -> str:

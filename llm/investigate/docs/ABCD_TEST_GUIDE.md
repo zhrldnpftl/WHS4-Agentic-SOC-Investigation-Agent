@@ -220,7 +220,7 @@ Windows의 복사 명령은 `Copy-Item .env.example .env`, macOS/Linux는 `cp .e
 | 설정 | 의미 |
 | --- | --- |
 | `LLM_PROVIDER` | `gemini` 또는 `anthropic` |
-| `GEMINI_API_KEY` / `ANTHROPIC_API_KEY` | 선택한 모델의 실제 API 키 |
+| `GEMINI_API_KEY` / `INVESTIGATION_ANTHROPIC_API_KEY`(조사 전용, 먼저 읽음) / `ANTHROPIC_API_KEY` | 선택한 모델의 실제 API 키 |
 | `HOST` / `LOG_LOCAL_HOST` | 수집 서버 이름. 웹 요청의 도메인 이름과 구분 |
 | `APACHE_LOG_PATH` | 현재 템플릿은 존재하는 `sample_logs/sample_apache_web.log`를 사용 |
 | `AUTH_LOG_PATH`, `AUDIT_LOG_PATH`, `SURICATA_LOG_PATH` | 해당 원본 로그 파일 경로 |

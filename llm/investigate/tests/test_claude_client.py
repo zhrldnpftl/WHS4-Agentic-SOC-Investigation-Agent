@@ -25,8 +25,9 @@ from agent.tools import build_default_registry
 
 @pytest.fixture(autouse=True)
 def isolated_env(monkeypatch):
-    # 실행하는 셸에 CLAUDE_MODEL·CLAUDE_EFFORT가 있어도 기본값을 확인할 수 있게 비운다
-    for name in ("CLAUDE_MODEL", "CLAUDE_EFFORT", "CLAUDE_REFUSAL_FALLBACK_MODEL"):
+    # 실행하는 셸에 CLAUDE_MODEL·CLAUDE_EFFORT·API 키가 있어도 기본값을 확인할 수 있게 비운다
+    for name in ("CLAUDE_MODEL", "CLAUDE_EFFORT", "CLAUDE_REFUSAL_FALLBACK_MODEL",
+                 "INVESTIGATION_ANTHROPIC_API_KEY", "ANTHROPIC_API_KEY"):
         monkeypatch.delenv(name, raising=False)
 
 
@@ -183,9 +184,38 @@ def test_truncated_response_raises_decision_error(monkeypatch):
 
 def test_missing_api_key_is_clear_error(monkeypatch):
     _install_fake_anthropic(monkeypatch, [])
-    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
-    with pytest.raises(ValueError, match="ANTHROPIC_API_KEY"):
+    with pytest.raises(ValueError, match="INVESTIGATION_ANTHROPIC_API_KEY 또는 ANTHROPIC_API_KEY"):
         ClaudeClient()
+
+
+# 1차 탐지(llm/triage_review)와 조사 에이전트가 키를 나눌 수 있게 조사 전용 키를 먼저 읽는다
+@pytest.mark.parametrize("env,expected_key,expected_source", [
+    ({"INVESTIGATION_ANTHROPIC_API_KEY": "inv-secret", "ANTHROPIC_API_KEY": "shared-secret"},
+     "inv-secret", "INVESTIGATION_ANTHROPIC_API_KEY"),
+    ({"ANTHROPIC_API_KEY": "shared-secret"}, "shared-secret", "ANTHROPIC_API_KEY"),
+    # .env에 `INVESTIGATION_ANTHROPIC_API_KEY=`로 비워 둔 경우는 없는 것으로 본다
+    ({"INVESTIGATION_ANTHROPIC_API_KEY": "", "ANTHROPIC_API_KEY": "shared-secret"},
+     "shared-secret", "ANTHROPIC_API_KEY"),
+])
+def test_api_key_prefers_investigation_key_and_logs_only_name(monkeypatch, capsys, env,
+                                                              expected_key, expected_source):
+    created = _install_fake_anthropic(monkeypatch, [])
+    for name, value in env.items():
+        monkeypatch.setenv(name, value)
+    client = ClaudeClient()
+    assert created["api_key"] == expected_key
+    assert client.api_key_source == expected_source
+    out = capsys.readouterr().out
+    assert f"API 키: {expected_source} 사용" in out
+    assert "secret" not in out  # 키 값은 남기지 않는다
+
+
+def test_explicit_api_key_argument_wins(monkeypatch, capsys):
+    created = _install_fake_anthropic(monkeypatch, [])
+    monkeypatch.setenv("INVESTIGATION_ANTHROPIC_API_KEY", "inv-secret")
+    client = ClaudeClient(api_key="arg-secret")
+    assert created["api_key"] == "arg-secret" and client.api_key_source == "api_key 인자"
+    assert "secret" not in capsys.readouterr().out
 
 
 def test_model_from_env(monkeypatch):

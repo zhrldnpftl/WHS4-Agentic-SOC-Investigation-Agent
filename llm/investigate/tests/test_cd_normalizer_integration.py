@@ -62,6 +62,50 @@ def test_all_vendor_fields_and_refs_match_query_and_tools(monkeypatch, layer, mo
                        for locations in event["raw_ref_locations"].values() for location in locations)
 
 
+ROOT_DOTENV_VALUES = {"SERVER_PUBLIC_IP": "9.9.9.9", "SURICATA_SENSOR_ID": "root_sensor",
+                      "AUTH_LOG_YEAR": "2026", "ANTHROPIC_API_KEY": "root-dummy"}
+
+
+def test_adapter_import_does_not_load_root_dotenv(tmp_path):
+    """1차 탐지 원본의 import 시점 load_dotenv()가 루트 .env 값을 채우지 못해야 한다.
+
+    원본은 load_dotenv()를 자기 파일 위치 기준으로 불러 저장소 루트 .env를 읽는다. 가짜 dotenv 모듈의
+    load_dotenv()가 "루트 .env를 읽은 것처럼" 값을 넣게 하고, 어댑터 import 뒤 환경변수와 import 시점에
+    고정되는 모듈 값(SERVER_PUBLIC_IP, normalize_row의 sensor_id 기본값)을 새 프로세스에서 확인한다.
+    """
+    import json
+    import subprocess
+
+    fake = tmp_path / "dotenv"
+    fake.mkdir()
+    (fake / "__init__.py").write_text(
+        "import os\n"
+        f"VALUES = {ROOT_DOTENV_VALUES!r}\n"
+        "def load_dotenv(*args, **kwargs):\n"
+        "    os.environ.update(VALUES)\n"
+        "    return True\n", encoding="utf-8")
+    probe = (
+        "import inspect, json, os, dotenv\n"
+        "from agent.tools import normalizer_adapter as na\n"
+        "import tools.fetch_network_log as fn\n"
+        f"keys = {sorted(ROOT_DOTENV_VALUES)!r}\n"
+        "leaked = {k: os.environ[k] for k in keys if k in os.environ}\n"
+        "sensor = inspect.signature(fn.normalize_row).parameters['sensor_id'].default\n"
+        "dotenv.load_dotenv()\n"  # import가 끝나면 load_dotenv는 원래대로 돌아와야 한다
+        "print(json.dumps({'leaked': leaked, 'server_public_ip': na.server_public_ip(), 'sensor': sensor,\n"
+        "                  'restored': os.environ.get('SERVER_PUBLIC_IP')}))\n"
+    )
+    env = {k: v for k, v in os.environ.items() if k not in ROOT_DOTENV_VALUES}
+    env["PYTHONPATH"] = str(tmp_path)
+    completed = subprocess.run([sys.executable, "-c", probe], cwd=Path(__file__).resolve().parents[1],
+                               env=env, capture_output=True, text=True, check=True)
+    result = json.loads(completed.stdout.strip().splitlines()[-1])
+    assert result["leaked"] == {}
+    assert result["server_public_ip"] != ROOT_DOTENV_VALUES["SERVER_PUBLIC_IP"]
+    assert result["sensor"] != ROOT_DOTENV_VALUES["SURICATA_SENSOR_ID"]
+    assert result["restored"] == ROOT_DOTENV_VALUES["SERVER_PUBLIC_IP"]
+
+
 def test_original_ab_adapter_parity_check():
     # The upstream parity script is not discovered by pytest (_run instead of test_*).
     from tests.test_normalizer_parity import _run

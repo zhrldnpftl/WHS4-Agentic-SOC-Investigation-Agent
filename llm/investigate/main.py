@@ -18,7 +18,8 @@
 
 실행 준비
   1. `pip install -r requirements.txt`
-  2. .env에 ANTHROPIC_API_KEY(기본 Claude) 또는 LLM_PROVIDER=gemini + GEMINI_API_KEY
+  2. .env에 INVESTIGATION_ANTHROPIC_API_KEY(조사 전용, 먼저 읽음) 또는 ANTHROPIC_API_KEY(기본 Claude),
+     또는 LLM_PROVIDER=gemini + GEMINI_API_KEY
   3. .env에 계층별 로그 파일 경로(APACHE/AUTH/AUDIT/SURICATA_LOG_PATH)와 HOST(수집 서버 이름)
      — EC2라면 /var/log/... 경로 (.env.example 참고). 조사 도구가 원본 로그를 다시 읽을 때 쓴다.
   4. 사건 파일: 1차 탐지 출력(한 줄에 Incident 한 건인 JSONL) 또는 직접 작성한 사건 JSON
@@ -40,7 +41,9 @@ from dotenv import load_dotenv
 from agent import build_default_registry, load_incidents, run_investigation_pipeline
 from agent.llm_provider import build_llm_client
 
-load_dotenv()  # .env 파일에서 GEMINI_API_KEY / ANTHROPIC_API_KEY / HOST 등을 읽어온다
+# .env 파일에서 API 키 / HOST / 로그 경로 등을 읽어온다. 이 파일 위치(llm/investigate/)부터 위로 찾은 첫 .env
+# 하나만 읽는다(없으면 저장소 루트 .env). 1차 탐지 원본의 import 시점 load_dotenv()는 normalizer_adapter가 막는다.
+load_dotenv()
 
 RESULTS_DIR = "results"
 # 단계별 결과 폴더: 이후 단계(ATT&CK 매핑 등)가 붙으면 results/ 아래에 단계별 폴더를 나란히 둔다

@@ -19,7 +19,10 @@
   [21] agent/prompts/__init__.py  build_system_prompt(), build_user_prompt()
   [22] anthropic  messages.create()
 
-필요 환경변수: ANTHROPIC_API_KEY. 모델은 CLAUDE_MODEL(없으면 claude-sonnet-5).
+필요 환경변수: INVESTIGATION_ANTHROPIC_API_KEY(조사 에이전트 전용 키, 먼저 읽음) 또는 ANTHROPIC_API_KEY.
+  1차 탐지(llm/triage_review)도 ANTHROPIC_API_KEY를 쓰므로 키를 나누려면 전용 키를 둔다. 빈 값은 없는 것으로
+  보고 ANTHROPIC_API_KEY로 넘어간다. 어느 이름을 썼는지는 키 값 없이 콘솔("[Claude] API 키: <이름> 사용")과
+  api_key_source 속성에 남긴다. 모델은 CLAUDE_MODEL(없으면 claude-sonnet-5).
 선택 환경변수: CLAUDE_EFFORT(low|medium|high|xhigh|max) — 없으면 API 기본값(high).
   CLAUDE_REFUSAL_FALLBACK_MODEL — 안전 필터 거절(stop_reason=refusal) 시 같은 요청을 다시 보낼 모델
   (없으면 claude-sonnet-4-6, none/off면 대체 호출 없이 해석 실패로 처리). 대체 호출은 결과 notes에 남는다.
@@ -39,6 +42,8 @@ DEFAULT_MODEL = "claude-sonnet-5"
 # 거절 시 대체 모델: sonnet-5는 sonnet-4.6보다 사이버 보안 주제를 더 엄격하게 거른다(Anthropic 문서).
 DEFAULT_REFUSAL_FALLBACK_MODEL = "claude-sonnet-4-6"
 EFFORT_LEVELS = ("low", "medium", "high", "xhigh", "max")
+# 앞에서부터 값이 있는 첫 이름의 키를 쓴다 (조사 전용 키 → 1차 탐지와 공용 키)
+API_KEY_ENV_NAMES = ("INVESTIGATION_ANTHROPIC_API_KEY", "ANTHROPIC_API_KEY")
 # SDK 재시도 뒤에도 이 상태 코드면 일시 오류로 본다(429 한도, 5xx·529 과부하, 408 시간 초과)
 TRANSIENT_STATUS = frozenset({408, 429, 500, 502, 503, 504, 529})
 
@@ -80,13 +85,18 @@ class ClaudeClient:
         # anthropic 패키지는 실제 API 호출 시에만 필요하므로 지연 import한다.
         from anthropic import Anthropic
 
-        resolved_key = api_key or os.environ.get("ANTHROPIC_API_KEY")
+        # 어느 이름의 키를 썼는지(키 값 아님) — 1차 탐지(llm/triage_review)와 키를 나눴는지 확인용
+        self.api_key_source = "api_key 인자" if api_key else next(
+            (name for name in API_KEY_ENV_NAMES if os.environ.get(name)), None)
+        resolved_key = api_key or (os.environ.get(self.api_key_source) if self.api_key_source else None)
         if not resolved_key:
             raise ValueError(
-                "ANTHROPIC_API_KEY가 설정되지 않았습니다. .env 파일에 "
+                f"{' 또는 '.join(API_KEY_ENV_NAMES)}가 설정되지 않았습니다. .env 파일에 "
+                "INVESTIGATION_ANTHROPIC_API_KEY=발급받은_키(조사 에이전트 전용, 권장) 또는 "
                 "ANTHROPIC_API_KEY=발급받은_키 를 추가하거나 ClaudeClient(api_key=...)로 "
                 "직접 전달하십시오."
             )
+        print(f"[Claude] API 키: {self.api_key_source} 사용")
         self._client = Anthropic(api_key=resolved_key, max_retries=self.MAX_RETRIES)
         self.model = model or os.environ.get("CLAUDE_MODEL") or DEFAULT_MODEL
         self.max_tokens = max_tokens

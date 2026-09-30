@@ -85,7 +85,9 @@ python -m tests.test_consistency --runs 3 --seed-json seed.json   # 같은 seed 
 
 ## LLM
 
-기본은 Claude다(`ANTHROPIC_API_KEY`, 모델은 `CLAUDE_MODEL`, 기본 `claude-sonnet-5`).
+기본은 Claude다(키는 조사 전용 `INVESTIGATION_ANTHROPIC_API_KEY`를 먼저 읽고 비어 있으면 1차 탐지와 공용인
+`ANTHROPIC_API_KEY`, 모델은 `CLAUDE_MODEL`, 기본 `claude-sonnet-5`). 어느 이름의 키를 썼는지는 실행 시
+`[Claude] API 키: <이름> 사용`으로 표시된다(키 값은 출력하지 않음).
 `LLM_PROVIDER=gemini` + `GEMINI_API_KEY`로 Gemini(무료 티어)로 바꿀 수 있다(모델은 `GEMINI_MODEL`, 기본
 `gemini-3.5-flash-lite`). Gemini 무료 티어의 429(요청 한도)·503(일시 과부하)은 코드가 기다렸다 재시도하며,
 하루 한도를 넘으면 다음 날(한국 시간 오후 4시경) 초기화된다. 특정 모델이 과부하면 `GEMINI_MODEL`을 바꾼다.

@@ -9,7 +9,7 @@ from agent.llm_provider import build_llm_client
 
 @pytest.fixture(autouse=True)
 def isolated_env(monkeypatch):
-    for name in ("LLM_PROVIDER", "CLAUDE_MODEL", "CLAUDE_EFFORT", "GEMINI_MODEL"):
+    for name in ("LLM_PROVIDER", "CLAUDE_MODEL", "CLAUDE_EFFORT", "GEMINI_MODEL", "INVESTIGATION_ANTHROPIC_API_KEY"):
         monkeypatch.delenv(name, raising=False)
     monkeypatch.setenv("ANTHROPIC_API_KEY", "test-key")
     monkeypatch.setenv("GEMINI_API_KEY", "test-key")

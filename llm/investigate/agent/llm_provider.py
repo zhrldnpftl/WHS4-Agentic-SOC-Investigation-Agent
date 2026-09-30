@@ -10,7 +10,7 @@
   tests/test_consistency.py             → build_llm_client()
 
 무엇을 부르나
-  agent/claude_client.py ClaudeClient()   ANTHROPIC_API_KEY, 모델 CLAUDE_MODEL(기본 claude-sonnet-5)
+  agent/claude_client.py ClaudeClient()   INVESTIGATION_ANTHROPIC_API_KEY → 없으면 ANTHROPIC_API_KEY, 모델 CLAUDE_MODEL(기본 claude-sonnet-5)
   agent/gemini_client.py GeminiClient()   GEMINI_API_KEY, 모델 GEMINI_MODEL(기본 gemini-3.5-flash-lite)
 """
 
@@ -29,7 +29,7 @@ def build_llm_client() -> Any:
     if provider == "anthropic":
         from .claude_client import ClaudeClient
 
-        return ClaudeClient()  # ANTHROPIC_API_KEY 필요
+        return ClaudeClient()  # INVESTIGATION_ANTHROPIC_API_KEY 또는 ANTHROPIC_API_KEY 필요
     if provider == "gemini":
         from .gemini_client import GeminiClient
 
