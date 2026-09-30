@@ -11,17 +11,18 @@
 
 무엇을 부르나
   [2] agent/tools/registry.py   build_default_registry()   조사 도구 목록 만들기
-  [3] agent/llm_provider.py     build_llm_client()         LLM 클라이언트 (기본 Claude, LLM_PROVIDER=gemini면 Gemini)
+  [3] agent/llm_provider.py     build_llm_client()         LLM 클라이언트 (기본 Claude, INVESTIGATION_LLM_PROVIDER=gemini면 Gemini)
   [4] agent/incident_input.py   load_incidents()           사건 파일 읽기 (JSON 객체·배열 또는 JSONL)
   [5] agent/pipeline.py         run_investigation_pipeline() 사건별 조사
   [45] main.py                  save_investigation_result() 결과 JSON 저장
 
 실행 준비
   1. `pip install -r requirements.txt`
-  2. .env에 INVESTIGATION_ANTHROPIC_API_KEY(조사 전용, 먼저 읽음) 또는 ANTHROPIC_API_KEY(기본 Claude),
-     또는 LLM_PROVIDER=gemini + GEMINI_API_KEY
-  3. .env에 계층별 로그 파일 경로(APACHE/AUTH/AUDIT/SURICATA_LOG_PATH)와 HOST(수집 서버 이름)
-     — EC2라면 /var/log/... 경로 (.env.example 참고). 조사 도구가 원본 로그를 다시 읽을 때 쓴다.
+  2. 저장소 루트 .env(루트 .env.example 참고)에 INVESTIGATION_ANTHROPIC_API_KEY(조사 전용, 먼저 읽음) 또는
+     ANTHROPIC_API_KEY(공용), 모델 INVESTIGATION_CLAUDE_MODEL. Gemini는 INVESTIGATION_LLM_PROVIDER=gemini +
+     INVESTIGATION_GEMINI_API_KEY. LLM 설정은 INVESTIGATION_ 이름만 읽는다(agent/settings.py).
+  3. 같은 루트 .env에 계층별 로그 파일 경로(APACHE/AUTH/AUDIT/SURICATA_LOG_PATH)와 HOST(수집 서버 이름)
+     — EC2라면 /var/log/... 경로. 조사 도구가 원본 로그를 다시 읽을 때 쓴다.
   4. 사건 파일: 1차 탐지 출력(한 줄에 Incident 한 건인 JSONL) 또는 직접 작성한 사건 JSON
 
 결과 저장
@@ -36,14 +37,14 @@ import json
 import os
 from datetime import datetime, timezone
 
-from dotenv import load_dotenv
-
 from agent import build_default_registry, load_incidents, run_investigation_pipeline
 from agent.llm_provider import build_llm_client
+from agent.settings import load_root_env
 
-# .env 파일에서 API 키 / HOST / 로그 경로 등을 읽어온다. 이 파일 위치(llm/investigate/)부터 위로 찾은 첫 .env
-# 하나만 읽는다(없으면 저장소 루트 .env). 1차 탐지 원본의 import 시점 load_dotenv()는 normalizer_adapter가 막는다.
-load_dotenv()
+# 저장소 루트 .env(1차 탐지와 같이 쓰는 파일 하나)에서 API 키 / HOST / 로그 경로 등을 읽어온다.
+# 경로로 직접 읽으므로 llm/investigate/.env는 읽지 않는다. 1차 탐지 원본의 import 시점 load_dotenv()는
+# normalizer_adapter가 막는다.
+load_root_env()
 
 RESULTS_DIR = "results"
 # 단계별 결과 폴더: 이후 단계(ATT&CK 매핑 등)가 붙으면 results/ 아래에 단계별 폴더를 나란히 둔다
@@ -89,7 +90,7 @@ def main(argv=None) -> None:
     #     agent/tools/real/ 폴더에서 "파일명 == 함수명"인 도구를 자동으로 찾아 등록한다.
     #     resolve_ip_geo는 구현은 있지만 지금 우선순위가 아니라서 뺀다.
     tool_registry = build_default_registry(exclude=["resolve_ip_geo"])
-    # [3] → agent/llm_provider.py build_llm_client(): 기본 Claude, LLM_PROVIDER=gemini면 Gemini
+    # [3] → agent/llm_provider.py build_llm_client(): 기본 Claude, INVESTIGATION_LLM_PROVIDER=gemini면 Gemini
     llm_client = build_llm_client()
 
     # [45] 결과 저장 — 사건 하나가 끝날 때마다 바로 저장한다. 뒤 사건에서 예외(API 키 오류 등)로

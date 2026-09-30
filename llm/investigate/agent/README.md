@@ -35,4 +35,4 @@
 python main.py <사건 파일>   # 1차 탐지 Incident JSONL 또는 직접 작성한 사건 JSON
 ```
 
-`.env`에 필요한 값은 `.env.example` 참고. 테스트는 [tests/README.md](../tests/README.md).
+설정은 저장소 루트 `.env` 하나에 둔다(필요한 값은 저장소 루트 `.env.example`의 조사 에이전트 부분, 읽는 규칙은 `settings.py`). 테스트는 [tests/README.md](../tests/README.md).

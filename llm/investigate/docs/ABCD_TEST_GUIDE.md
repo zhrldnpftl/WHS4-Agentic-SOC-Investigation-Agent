@@ -209,25 +209,28 @@ Agentic-SOC/
 ## 6. 내 로그로 실제 LLM까지 실행하려면
 
 1. `python -m pip install -r requirements.txt`로 운영 의존성을 설치한다.
-2. `.env.example`을 `.env`로 복사하고 선택한 모델의 API 키를 입력한다.
-3. `HOST`, `LOG_LOCAL_HOST`, 계층별 `*_LOG_PATH`를 내 수집 서버와 파일에 맞춘다.
+2. **저장소 루트**의 `.env.example`을 `.env`로 복사하고 API 키를 입력한다. 조사 에이전트는 루트 `.env` 하나만 읽는다
+   (`llm/investigate/.env`는 읽지 않음). LLM 설정은 `INVESTIGATION_` 접두어 이름만 읽는다.
+3. `HOST`, `LOG_LOCAL_HOST`, 계층별 `*_LOG_PATH`를 내 수집 서버와 파일에 맞춘다(상대경로는 실행 폴더 기준).
 4. auth가 연도 없는 syslog이면 `AUTH_LOG_YEAR`를 실제 로그 연도로 맞춘다.
 5. `python main.py <사건 파일>`을 실행한다(1차 탐지 Incident JSONL 또는 사건 JSON). 사건마다 `results/investigation_agent/`에 JSON이 저장된다.
 
-Windows의 복사 명령은 `Copy-Item .env.example .env`, macOS/Linux는 `cp .env.example .env`다.
+Windows의 복사 명령은 (저장소 루트에서) `Copy-Item .env.example .env`, macOS/Linux는 `cp .env.example .env`다.
 이미 `.env`가 있으면 필요한 항목만 수정한다. 키가 들어간 `.env`는 커밋하지 않는다.
 
 | 설정 | 의미 |
 | --- | --- |
-| `LLM_PROVIDER` | `gemini` 또는 `anthropic` |
-| `GEMINI_API_KEY` / `INVESTIGATION_ANTHROPIC_API_KEY`(조사 전용, 먼저 읽음) / `ANTHROPIC_API_KEY` | 선택한 모델의 실제 API 키 |
+| `INVESTIGATION_LLM_PROVIDER` | `gemini` 또는 `anthropic`(비우면 anthropic) |
+| `INVESTIGATION_ANTHROPIC_API_KEY`(조사 전용, 먼저 읽음) / `ANTHROPIC_API_KEY`(공용) | Claude API 키 |
+| `INVESTIGATION_CLAUDE_MODEL` / `INVESTIGATION_CLAUDE_REFUSAL_FALLBACK_MODEL` | 조사 모델(EC2: `claude-haiku-4-5-20251001`) / 거절 시 재요청 모델(비우면 `claude-sonnet-4-6`) |
+| `INVESTIGATION_GEMINI_API_KEY`(먼저 읽음) / `GEMINI_API_KEY` | Gemini를 쓸 때의 API 키 |
 | `HOST` / `LOG_LOCAL_HOST` | 수집 서버 이름. 웹 요청의 도메인 이름과 구분 |
 | `APACHE_LOG_PATH` | 현재 템플릿은 존재하는 `sample_logs/sample_apache_web.log`를 사용 |
 | `AUTH_LOG_PATH`, `AUDIT_LOG_PATH`, `SURICATA_LOG_PATH` | 해당 원본 로그 파일 경로 |
 | `AUTH_LOG_YEAR` | 연도 없는 인증 로그 해석에 사용할 실제 연도 |
 
 B/C 조회에는 사건 시간이 적용되므로 내 샘플의 날짜에 맞는 사건 window가 필요하다. 직접 Python에서 도구를 호출할 때는
-`.env`를 자동으로 읽지 않으므로 환경변수를 지정하거나 `load_dotenv()`를 호출한다.
+`.env`를 자동으로 읽지 않으므로 환경변수를 지정하거나 `agent.settings.load_root_env()`를 호출한다.
 
 `*_LOG_PATH`는 필수다(S3 읽기는 삭제됨). 경로가 비어 있으면 설정 오류로 알린다.
 객체 경로는 `raw/source_type=<apache|auth|auditd|suricata>/host=<서버>/dt=<UTC 날짜>/...`다.

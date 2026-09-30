@@ -35,9 +35,10 @@ python -m pytest -v tests/test_abcd_pipeline.py tests/test_cd_normalizer_integra
 | `test_fetch_*_log.py`, `test_get_process_tree.py` | B의 계층별 필터와 프로세스 연결 |
 | `test_incident_input.py` | 1차 탐지 Incident(실제 출력 `fixtures/primary_detection_incidents.jsonl`) → 조사 루프 입력 변환, 사건 파일 형식(JSONL·배열·객체) |
 | `test_pipeline.py` | 사건 파일의 사건들이 받은 순서대로 조사되고 탐지 근거 참조가 결과까지 이어지는지, 결과 최상위 `incident_key`·`incident_snapshot`, 한 사건의 LLM API 일시 오류는 그 사건만 조사 미완료로 두고 나머지를 조사·즉시 전달하는지, 설정 오류는 멈추되 앞 사건은 이미 전달됐는지 |
-| `test_claude_client.py` | Claude 클라이언트 호출 인자(sampling 인자 없음, 출력 한도, effort), API 키 선택(`INVESTIGATION_ANTHROPIC_API_KEY` 우선, 빈 값이면 `ANTHROPIC_API_KEY`, 키 이름만 출력), 보내는 인자가 설치된 anthropic SDK 시그니처에 있는지, 일시 오류 → `LLMUnavailableError`, 설정 오류는 그대로, 조사 루프에서 설명이 붙은 응답 해석·해석 실패 시 notes에 응답 앞부분, 안전 필터 거절 시 대체 모델 재요청·notes 기록·대체 불가 시 category 담은 실패 |
+| `test_claude_client.py` | Claude 클라이언트 호출 인자(sampling 인자 없음, 출력 한도, effort), API 키 선택(`INVESTIGATION_ANTHROPIC_API_KEY` 우선, 빈 값이면 `ANTHROPIC_API_KEY`, 키 이름만 출력), 보내는 인자가 설치된 anthropic SDK 시그니처에 있는지, 일시 오류 → `LLMUnavailableError`, 설정 오류는 그대로, 조사 루프에서 설명이 붙은 응답 해석·해석 실패 시 notes에 응답 앞부분, 안전 필터 거절 시 대체 모델 재요청(EC2 haiku 설정에서도 다른 모델로)·notes 기록·대체 불가 시 category 담은 실패, `INVESTIGATION_CLAUDE_*`만 읽고 옛 `CLAUDE_*`(옛 `none` 포함)는 무시·이름만 안내, 재요청 끄기(`none`) 경고 |
 | `test_llm_json.py` | LLM 응답 JSON 꺼내기: 앞뒤 설명 문장·중간 코드 블록·trailing comma·markdown 키, 실패 시 오류 첫 줄에 응답 앞부분 |
-| `test_llm_provider.py` | `LLM_PROVIDER` 기본값(Claude)·Gemini 선택·`GEMINI_MODEL`·알 수 없는 값 오류 |
+| `test_llm_provider.py` | `INVESTIGATION_LLM_PROVIDER` 기본값(Claude)·Gemini 선택·`INVESTIGATION_GEMINI_MODEL`·조사 전용 Gemini 키·알 수 없는 값 오류, 옛 이름 `LLM_PROVIDER`·`GEMINI_MODEL` 무시 |
+| `test_settings.py` | 저장소 루트 `.env`만 읽기(`llm/investigate/.env` 무시·안내, 이미 설정된 환경변수 우선), `INVESTIGATION_` 이름만 읽고 옛 이름은 한 번만 이름만 안내(값 미출력), 빈 값은 없는 것 |
 | `test_gemini_client.py` | Gemini 재시도: 일시 오류(503·429·연결)는 재시도 후 `LLMUnavailableError`, 설정 오류(400·401·403)는 재시도 없이 그대로 |
 | `test_loop.py` | 종료 조건·중복 호출 방지·최대 호출 수·도구 오류 처리 |
 

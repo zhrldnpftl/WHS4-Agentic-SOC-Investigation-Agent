@@ -1,7 +1,7 @@
 """동일 seed에 대한 InvestigationAgent 판정 재현성 검증.
 
 실제 LLM API를 N번 호출해서(비용/시간 발생 주의) 재현성을 측정한다. LLM은 main.py와 같은 규칙으로
-고른다(agent/llm_provider.py — 기본 Claude, LLM_PROVIDER=gemini면 Gemini).
+고른다(agent/llm_provider.py — 기본 Claude, INVESTIGATION_LLM_PROVIDER=gemini면 Gemini).
 LLM API 일시 오류로 조사 미완료(INCOMPLETE)가 된 실행은 판정 분포에 넣지 않고 실패로 센다.
 
 *** 2026-09-17 업데이트: 무료 티어 rate limit(15 RPM) 대응 ***
@@ -20,13 +20,12 @@ import time
 from collections import Counter
 from typing import Any, Dict, List
 
-from dotenv import load_dotenv
-
 from agent.llm_provider import build_llm_client
 from agent.loop import InvestigationAgent
+from agent.settings import load_root_env
 from agent.tools import build_default_registry
 
-load_dotenv()
+load_root_env()  # 저장소 루트 .env (main.py와 같은 파일)
 
 SEED = {
     "incident_id": "CONSISTENCY-TEST-05",

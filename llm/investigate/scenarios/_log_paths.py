@@ -7,11 +7,14 @@
 """
 
 import os
+from pathlib import Path
 
 try:  # dotenv는 선택 의존성 — 없으면 이미 설정된 환경변수만 본다
     from dotenv import load_dotenv
 
-    load_dotenv()
+    # 조사 에이전트(agent/settings.py load_root_env)와 같은 저장소 루트 .env를 경로로 직접 읽는다.
+    # 시나리오는 `python scenarios/...py`로 실행되어 agent 패키지를 import하지 않고 경로만 같게 계산한다.
+    load_dotenv(Path(__file__).resolve().parents[3] / ".env")
 except ImportError:
     pass
 

@@ -42,7 +42,7 @@ LLM은 **"무엇을 조회할지"와 "어떻게 판정할지"를 제안**하고,
 |---|---|---|
 | [1] | `main.py` 맨 아래 | `python main.py <사건 파일>` → `main()` |
 | [2] | `registry.build_default_registry()` | 7개 도구 등록. `agent/tools/real/<도구이름>.py`에 같은 이름 함수가 있으면 그걸 쓰고, 없으면 목업. `resolve_ip_geo`는 제외 |
-| [3] | `agent/llm_provider.build_llm_client()` | `.env`의 `LLM_PROVIDER`(기본 anthropic = Claude)로 클라이언트 생성 |
+| [3] | `agent/llm_provider.build_llm_client()` | 루트 `.env`의 `INVESTIGATION_LLM_PROVIDER`(기본 anthropic = Claude)로 클라이언트 생성 |
 | [4] | `incident_input.load_incidents()` | 사건 파일 읽기. JSON 객체 하나, JSON 배열, 한 줄에 한 건인 JSONL(1차 탐지 출력)을 받음. 각 사건에 `incident_id` 필수 |
 | [5] | `pipeline.run_investigation_pipeline()` | 사건을 받은 순서대로 조사. `network_precheck=True`, `strict_termination=True`, `max_calls=8`, `confidence_threshold=0.85` |
 
@@ -229,11 +229,15 @@ LLM이 "끝내자"고 해도 아래에 걸리면 거부하고 사유를 다음 �
 
 ---
 
-## 8. 설정 (`.env`)
+## 8. 설정 (저장소 루트 `.env`)
+
+조사 에이전트는 저장소 루트 `.env` 하나만 경로로 직접 읽는다(`agent/settings.load_root_env()`, `llm/investigate/.env`는 무시).
+LLM 설정은 `INVESTIGATION_` 접두어 이름만 읽고, 접두어 없는 옛 이름은 무시하며 이름만 안내한다.
 
 | 변수 | 뜻 |
 |---|---|
-| `INVESTIGATION_ANTHROPIC_API_KEY`(조사 전용, 먼저 읽음) → `ANTHROPIC_API_KEY` / `GEMINI_API_KEY`, `LLM_PROVIDER`, `CLAUDE_MODEL`, `CLAUDE_EFFORT`, `CLAUDE_REFUSAL_FALLBACK_MODEL`, `GEMINI_MODEL` | LLM (기본 anthropic, Claude 모델 기본 claude-sonnet-5, 거절 시 대체 모델 기본 claude-sonnet-4-6, Gemini 모델 기본 gemini-3.5-flash-lite) |
+| `INVESTIGATION_ANTHROPIC_API_KEY`(조사 전용, 먼저 읽음) → `ANTHROPIC_API_KEY` / `INVESTIGATION_GEMINI_API_KEY` → `GEMINI_API_KEY` | API 키 (역할 키가 비면 공용 키) |
+| `INVESTIGATION_LLM_PROVIDER`, `INVESTIGATION_CLAUDE_MODEL`, `INVESTIGATION_CLAUDE_EFFORT`, `INVESTIGATION_CLAUDE_REFUSAL_FALLBACK_MODEL`, `INVESTIGATION_GEMINI_MODEL` | LLM (기본 anthropic, Claude 모델 기본 claude-sonnet-5 — EC2는 claude-haiku-4-5-20251001, 거절 시 대체 모델 기본 claude-sonnet-4-6, Gemini 모델 기본 gemini-3.5-flash-lite). 공용 이름으로 대체하지 않는다 |
 | `HOST` | 사건에 host가 없을 때 채우는 수집 서버 이름 (비우면 web-01). 1차 탐지 Incident에는 host가 없다 |
 | `APACHE/AUTH/AUDIT/SURICATA_LOG_PATH` | 읽을 로그 파일 경로 (EC2: `/var/log/...`). **필수** |
 | `AUTH_LOG_YEAR`, `LOG_LOCAL_HOST` | 선택 (로컬 샘플용) |
@@ -242,7 +246,7 @@ LLM이 "끝내자"고 해도 아래에 걸리면 거부하고 사유를 다음 �
 
 ## 9. 알려진 한계
 
-- `LLM_PROVIDER=anthropic`(Claude)은 오프라인 테스트로만 확인했다. 실제 Claude의 판정 재현성·비용은 API 키로 측정해야 한다(`ClaudeClient.usage_totals`에 토큰 합계).
+- `INVESTIGATION_LLM_PROVIDER=anthropic`(Claude)은 오프라인 테스트로만 확인했다. 실제 Claude의 판정 재현성·비용은 API 키로 측정해야 한다(`ClaudeClient.usage_totals`에 토큰 합계).
 - 조사 도구는 `.env`의 로그 파일 하나만 읽는다. 1차 탐지가 로테이트된 파일(`access.log.1`, `.N.gz`)에서 찾은 사건은 그 참조를 도구로 다시 조회하지 못해 원본 추적이 `incomplete`가 될 수 있다. 이제 1차 탐지 원본 정규화 함수(`detection_pipeline/tools/`)를 직접 쓰지만, 로테이트 파일을 찾아 함께 읽는 부분(`detection_pipeline/tools/log_sources.py`)은 조사 도구의 `log_source.py`에 연결하지 않았다(남은 과제).
 - 어떤 사건을 어떤 순서로 조사할지(우선순위, 조사 상태 관리)는 1차 탐지·사건 저장소 방식이 정해지면 붙인다. 지금은 사건 파일에 적힌 순서대로 전부 조사한다.
 - `get_process_tree`는 관측된 audit 기반 추정이라 확정된 프로세스 트리가 아니다.

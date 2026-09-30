@@ -25,10 +25,14 @@ from agent.tools import build_default_registry
 
 @pytest.fixture(autouse=True)
 def isolated_env(monkeypatch):
-    # 실행하는 셸에 CLAUDE_MODEL·CLAUDE_EFFORT·API 키가 있어도 기본값을 확인할 수 있게 비운다
+    # 실행하는 셸에 모델 설정·API 키가 있어도 기본값을 확인할 수 있게 비운다(옛 이름·새 이름 모두)
     for name in ("CLAUDE_MODEL", "CLAUDE_EFFORT", "CLAUDE_REFUSAL_FALLBACK_MODEL",
+                 "INVESTIGATION_CLAUDE_MODEL", "INVESTIGATION_CLAUDE_EFFORT",
+                 "INVESTIGATION_CLAUDE_REFUSAL_FALLBACK_MODEL",
                  "INVESTIGATION_ANTHROPIC_API_KEY", "ANTHROPIC_API_KEY"):
         monkeypatch.delenv(name, raising=False)
+    # 옛 이름 안내는 프로세스당 한 번만 출력하므로 테스트마다 초기화한다
+    monkeypatch.setattr("agent.settings._notified", set())
 
 
 class FakeStatusError(Exception):
@@ -107,7 +111,7 @@ def test_claude_client_runs_investigation_loop(monkeypatch):
     assert call["max_tokens"] == 16000
     # anthropic SDK 1.x는 sampling 인자를 없앴고(TypeError), claude-sonnet-5도 받지 않는다(400)
     assert not {"temperature", "top_p", "top_k"} & set(call)
-    assert "output_config" not in call  # CLAUDE_EFFORT가 없으면 API 기본값
+    assert "output_config" not in call  # INVESTIGATION_CLAUDE_EFFORT가 없으면 API 기본값
     assert call["system"][0]["cache_control"] == {"type": "ephemeral"}
     assert created["max_retries"] == ClaudeClient.MAX_RETRIES
     assert client.usage_totals["calls"] == 2 and client.usage_totals["cache_read_input_tokens"] == 160
@@ -142,7 +146,7 @@ def test_refusal_is_retried_on_fallback_model_and_noted(monkeypatch):
     # 2026-09-29 재현성 측정: 웹셸 시나리오에서 sonnet-5가 연속 2번 거절(refusal) → 폴백 판정.
     # sonnet-5는 서버 측 fallbacks 대상이 없어 대체 모델로 같은 요청을 직접 다시 보낸다.
     created = _install_fake_anthropic(monkeypatch, [REFUSAL, _decision()])
-    monkeypatch.setenv("CLAUDE_EFFORT", "high")
+    monkeypatch.setenv("INVESTIGATION_CLAUDE_EFFORT", "high")
     client = ClaudeClient(api_key="k")
     decision = client.complete_json("sys", "user")
     first, second = created["messages"].calls
@@ -169,7 +173,7 @@ def test_refusal_note_reaches_investigation_result(monkeypatch):
 def test_refusal_without_usable_fallback_is_decision_error_with_category(monkeypatch, setting, calls):
     # off: 대체 호출 없이 실패 / 기본: 대체 모델도 거절하면 실패 — 둘 다 category를 첫 줄에 남긴다
     if setting:
-        monkeypatch.setenv("CLAUDE_REFUSAL_FALLBACK_MODEL", setting)
+        monkeypatch.setenv("INVESTIGATION_CLAUDE_REFUSAL_FALLBACK_MODEL", setting)
     created = _install_fake_anthropic(monkeypatch, [REFUSAL])
     with pytest.raises(ClaudeDecisionError, match=r"거절했습니다\(refusal, category=cyber"):
         ClaudeClient(api_key="k").complete_json("sys", "user")
@@ -220,17 +224,52 @@ def test_explicit_api_key_argument_wins(monkeypatch, capsys):
 
 def test_model_from_env(monkeypatch):
     _install_fake_anthropic(monkeypatch, [])
-    monkeypatch.setenv("CLAUDE_MODEL", "claude-haiku-4-5-20251001")
+    monkeypatch.setenv("INVESTIGATION_CLAUDE_MODEL", "claude-haiku-4-5-20251001")
     assert ClaudeClient(api_key="k").model == "claude-haiku-4-5-20251001"
+
+
+def test_ec2_haiku_setting_retries_refusal_on_different_model(monkeypatch):
+    # EC2는 sonnet-5 비용 때문에 조사 에이전트를 haiku로 돌린다. 거절 시 재요청은 끄지 않고 다른 모델로 간다
+    # (대체 모델 이름을 비워 두어도 끄는 것이 아니라 기본 대체 모델).
+    created = _install_fake_anthropic(monkeypatch, [REFUSAL, _decision()])
+    monkeypatch.setenv("INVESTIGATION_CLAUDE_MODEL", "claude-haiku-4-5-20251001")
+    monkeypatch.setenv("INVESTIGATION_CLAUDE_REFUSAL_FALLBACK_MODEL", "")
+    client = ClaudeClient(api_key="k")
+    client.complete_json("sys", "user")
+    assert [c["model"] for c in created["messages"].calls] == ["claude-haiku-4-5-20251001", "claude-sonnet-4-6"]
+
+
+def test_legacy_setting_names_are_ignored_with_name_only_notice(monkeypatch, capsys):
+    # 루트 .env를 다른 역할과 같이 쓰므로 접두어 없는 옛 이름은 조사 에이전트가 읽지 않는다
+    created = _install_fake_anthropic(monkeypatch, [REFUSAL, _decision()])
+    monkeypatch.setenv("CLAUDE_MODEL", "legacy-secret-model")
+    monkeypatch.setenv("CLAUDE_EFFORT", "legacy-secret-effort")
+    monkeypatch.setenv("CLAUDE_REFUSAL_FALLBACK_MODEL", "none")
+    client = ClaudeClient(api_key="k")
+    assert client.model == "claude-sonnet-5" and client.effort is None
+    assert client.refusal_fallback_model == "claude-sonnet-4-6"  # 옛 none으로 재요청이 꺼지지 않는다
+    client.complete_json("sys", "user")
+    assert len(created["messages"].calls) == 2
+    out = capsys.readouterr().out
+    for name in ("CLAUDE_MODEL", "CLAUDE_EFFORT", "CLAUDE_REFUSAL_FALLBACK_MODEL"):
+        assert f"{name}는 조사 에이전트에서 읽지 않습니다" in out and f"INVESTIGATION_{name}" in out
+    assert "legacy-secret" not in out and "none" not in out  # 안내에 값은 나오지 않는다
+
+
+def test_disabling_refusal_fallback_prints_warning(monkeypatch, capsys):
+    _install_fake_anthropic(monkeypatch, [])
+    monkeypatch.setenv("INVESTIGATION_CLAUDE_REFUSAL_FALLBACK_MODEL", "none")
+    assert ClaudeClient(api_key="k").refusal_fallback_model is None
+    assert "대체 모델 재요청이 꺼져 있습니다" in capsys.readouterr().out
 
 
 def test_effort_from_env_goes_to_output_config(monkeypatch):
     created = _install_fake_anthropic(monkeypatch, [{"text": "{}"}])
-    monkeypatch.setenv("CLAUDE_EFFORT", "Medium")
+    monkeypatch.setenv("INVESTIGATION_CLAUDE_EFFORT", "Medium")
     ClaudeClient(api_key="k").complete_json("sys", "user")
     assert created["messages"].calls[0]["output_config"] == {"effort": "medium"}
-    monkeypatch.setenv("CLAUDE_EFFORT", "fast")
-    with pytest.raises(ValueError, match="CLAUDE_EFFORT"):
+    monkeypatch.setenv("INVESTIGATION_CLAUDE_EFFORT", "fast")
+    with pytest.raises(ValueError, match="INVESTIGATION_CLAUDE_EFFORT"):
         ClaudeClient(api_key="k")
 
 
@@ -243,7 +282,7 @@ def test_request_arguments_are_accepted_by_installed_sdk(monkeypatch):
     from anthropic.resources.messages import Messages
 
     accepted = set(inspect.signature(Messages.create).parameters)
-    monkeypatch.setenv("CLAUDE_EFFORT", "high")
+    monkeypatch.setenv("INVESTIGATION_CLAUDE_EFFORT", "high")
     created = _install_fake_anthropic(monkeypatch, [{"text": "{}"}])
     ClaudeClient(api_key="k").complete_json("sys", "user")
     sent = set(created["messages"].calls[0])

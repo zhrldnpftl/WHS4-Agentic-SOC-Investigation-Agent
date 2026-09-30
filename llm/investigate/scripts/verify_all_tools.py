@@ -1,10 +1,10 @@
 ﻿"""5개 real tool이 전부 정상 동작하는지 한 번에 확인한다.
 
-.env에 설정된 *_LOCAL_PATH(sample_*.log)를 그대로 사용한다 — AWS 자격 증명이나
-별도 설정 없이 지금 프로젝트 루트에서 바로 실행하면 된다.
+저장소 루트 .env의 계층별 로그 경로(APACHE/AUTH/AUDIT/SURICATA_LOG_PATH)를 그대로 사용한다 —
+AWS 자격 증명이나 별도 설정 없이 llm/investigate/에서 바로 실행하면 된다. 이미 설정된 환경변수가 우선한다.
 
 사용법:
-    python scripts/verify_all_tools.py
+    python -m scripts.verify_all_tools
 """
 
 from __future__ import annotations
@@ -15,9 +15,9 @@ import traceback
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from dotenv import load_dotenv
+from agent.settings import load_root_env  # noqa: E402
 
-load_dotenv()
+load_root_env()
 
 WIDE_RANGE = {"start_time": "2020-01-01T00:00:00Z", "end_time": "2030-01-01T00:00:00Z"}
 

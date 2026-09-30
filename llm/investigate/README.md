@@ -57,13 +57,15 @@ main.py                  실행 진입점
 python -m venv .venv
 source .venv/bin/activate          # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
-cp .env.example .env               # 키와 로그 경로를 채운다
+(cd ../.. && cp .env.example .env)  # 저장소 루트 .env 하나에 키와 로그 경로를 채운다
 ```
 
-`.env` 최소 설정 (자세한 설명은 `.env.example`):
+조사 에이전트는 **저장소 루트 `.env` 하나만** 읽는다(1차 탐지와 같은 파일, `llm/investigate/.env`는 읽지 않음).
+LLM 설정은 `INVESTIGATION_` 접두어 이름만 읽는다. 최소 설정(자세한 설명은 저장소 루트 `.env.example`):
 
 ```
-GEMINI_API_KEY=발급받은_키
+ANTHROPIC_API_KEY=발급받은_키                   # 공용 키 (조사 전용 INVESTIGATION_ANTHROPIC_API_KEY가 있으면 그쪽 우선)
+INVESTIGATION_CLAUDE_MODEL=claude-haiku-4-5-20251001
 HOST=<수집 서버 이름, EC2는 hostname 결과>
 APACHE_LOG_PATH=/var/log/apache2/access.log
 AUTH_LOG_PATH=/var/log/auth.log
@@ -76,24 +78,32 @@ python main.py <사건 파일>                      # 사건별 조사 → resul
 python main.py tests/fixtures/primary_detection_incidents.jsonl   # 예: 1차 탐지 샘플 출력 (로그 경로는 저장소 루트 detection_pipeline/samples/)
 python -m pytest -q                             # 오프라인 테스트 (API 키 불필요)
 python -m tests.test_normalizer_parity          # 1차 탐지 정규화 결과와 동일성 검증
-python -m scripts.verify_all_tools              # .env 로그 경로로 도구 일괄 점검
+python -m scripts.verify_all_tools              # 루트 .env 로그 경로로 도구 일괄 점검
 python -m tests.test_consistency --runs 3 --seed-json seed.json   # 같은 seed 반복 판정 재현성 (실제 LLM)
 ```
 
-로컬 PC에서는 로그 경로를 `sample_logs/*.log`로 둔다. `sample_logs/`는 실제 트래픽이 들어 있어 저장소에
+로컬 PC에서는 로그 경로를 `sample_logs/*.log`로 둔다(루트 `.env`의 상대경로는 실행 폴더 기준이라, `llm/investigate/`에서
+실행하면 `sample_logs/...`, 저장소 루트에서 실행하면 `llm/investigate/sample_logs/...` — 헷갈리면 절대경로). `sample_logs/`는 실제 트래픽이 들어 있어 저장소에
 없다 — 팀원에게 받거나 `scripts/fetch_sample_from_ec2.py`로 받는다. 합성 공격 시나리오는 `scenarios/README.md`.
 
 ## LLM
 
-기본은 Claude다(키는 조사 전용 `INVESTIGATION_ANTHROPIC_API_KEY`를 먼저 읽고 비어 있으면 1차 탐지와 공용인
-`ANTHROPIC_API_KEY`, 모델은 `CLAUDE_MODEL`, 기본 `claude-sonnet-5`). 어느 이름의 키를 썼는지는 실행 시
-`[Claude] API 키: <이름> 사용`으로 표시된다(키 값은 출력하지 않음).
-`LLM_PROVIDER=gemini` + `GEMINI_API_KEY`로 Gemini(무료 티어)로 바꿀 수 있다(모델은 `GEMINI_MODEL`, 기본
-`gemini-3.5-flash-lite`). Gemini 무료 티어의 429(요청 한도)·503(일시 과부하)은 코드가 기다렸다 재시도하며,
-하루 한도를 넘으면 다음 날(한국 시간 오후 4시경) 초기화된다. 특정 모델이 과부하면 `GEMINI_MODEL`을 바꾼다.
-Claude 출력 한도는 16000(claude-sonnet-5는 thinking 토큰 포함)이고, 추론 강도는 선택 `CLAUDE_EFFORT`로 정한다.
-Claude가 공격 로그를 사이버 공격 요청으로 오인해 거절(refusal)하면 같은 요청을 `CLAUDE_REFUSAL_FALLBACK_MODEL`
-(기본 `claude-sonnet-4-6`)로 한 번 다시 보내고 결과 notes에 남긴다.
+LLM 설정은 루트 `.env`를 다른 LLM 단계와 같이 쓰므로 **`INVESTIGATION_` 접두어 이름만** 읽는다. 접두어 없는 옛 이름
+(`LLM_PROVIDER`, `CLAUDE_MODEL`, `CLAUDE_EFFORT`, `CLAUDE_REFUSAL_FALLBACK_MODEL`, `GEMINI_MODEL`)은 무시하고 실행 시
+이름만 안내한다(값은 출력하지 않음). 규칙은 `agent/settings.py`.
+
+기본은 Claude다(`INVESTIGATION_LLM_PROVIDER`, 비우면 anthropic). 키는 조사 전용 `INVESTIGATION_ANTHROPIC_API_KEY`를
+먼저 읽고 비어 있으면 1차 탐지와 공용인 `ANTHROPIC_API_KEY`를 쓴다. 어느 이름의 키를 썼는지는 실행 시
+`[Claude] API 키: <이름> 사용`으로 표시된다(키 값은 출력하지 않음). 모델은 `INVESTIGATION_CLAUDE_MODEL`(비우면
+`claude-sonnet-5`, EC2는 비용 때문에 `claude-haiku-4-5-20251001`). 추론 강도는 선택 `INVESTIGATION_CLAUDE_EFFORT`.
+Claude 출력 한도는 16000(claude-sonnet-5는 thinking 토큰 포함)이다.
+Claude가 공격 로그를 사이버 공격 요청으로 오인해 거절(refusal)하면 같은 요청을
+`INVESTIGATION_CLAUDE_REFUSAL_FALLBACK_MODEL`(비우면 `claude-sonnet-4-6`)로 한 번 다시 보내고 결과 notes에 남긴다.
+이 재요청은 끄지 않는다(`none`은 실험용, 켜면 경고 출력).
+`INVESTIGATION_LLM_PROVIDER=gemini` + `INVESTIGATION_GEMINI_API_KEY`(비우면 `GEMINI_API_KEY`)로 Gemini(무료 티어)로
+바꿀 수 있다(모델은 `INVESTIGATION_GEMINI_MODEL`, 기본 `gemini-3.5-flash-lite`). Gemini 무료 티어의 429(요청 한도)·
+503(일시 과부하)은 코드가 기다렸다 재시도하며, 하루 한도를 넘으면 다음 날(한국 시간 오후 4시경) 초기화된다. 특정
+모델이 과부하면 `INVESTIGATION_GEMINI_MODEL`을 바꾼다.
 `temperature`는 보내지 않는다(anthropic SDK 1.x에서 삭제, sonnet-5도 받지 않음). 429·5xx·529·연결 오류는 SDK가 재시도한다.
 두 LLM 모두 재시도 뒤에도 일시 오류면 그 사건만 조사 미완료(`investigation_status: INCOMPLETE`)로 저장하고
 다음 사건을 계속 조사한다. 시스템 프롬프트는
