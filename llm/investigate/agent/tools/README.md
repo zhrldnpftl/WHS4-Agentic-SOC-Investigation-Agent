@@ -11,7 +11,7 @@ Tool 연결·실행 계층입니다. `registry.py`가 LLM이 고른 도구 이�
   직접 고칠 필요가 없습니다.
 - **`real/`** — 실제 조사 도구 구현 5개(파일명 = 도구 이름, 자동 탐색 대상).
   자세한 규칙은 [real/README.md](real/README.md).
-- **`log_source.py`** — `.env`의 계층별 로그 경로(`APACHE/AUTH/AUDIT/SURICATA_LOG_PATH`) 파일을 읽고(`read_documents`), 정규화·시간창
+- **`log_source.py`** — `.env`의 계층별 로그 경로(`APACHE/AUTH/AUDIT/SURICATA_LOG_PATH`) 파일과 그 교체 파일(`.1`, `.N.gz` — 1차 탐지와 같은 `resolve_log_files` 규칙)을 읽고(`read_documents`), 정규화·시간창
   필터(`load_window_events`), 페이지네이션, 0건 안내를 제공하는 공용 계층. S3 읽기는 삭제됨(EC2 로컬 경로만 사용).
 - **`normalizer_adapter.py`** — 우리(에이전트팀)가 짠 얇은 어댑터. 원본 텍스트를
   같은 저장소 루트의 1차 탐지 원본 `detection_pipeline/tools/`의 정규화 함수에 그대로 넘깁니다

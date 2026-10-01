@@ -1,5 +1,7 @@
 """Offline C tests: real temporary files, no model or AWS credentials."""
+import gzip
 import json
+import os
 import sys
 from datetime import datetime, timezone
 from types import SimpleNamespace
@@ -128,6 +130,44 @@ def test_missing_and_permission_errors_are_not_empty_success(tmp_path, monkeypat
     import agent.tools.log_source as source
     monkeypatch.setattr(source, "read_documents", lambda *a, **kw: (_ for _ in ()).throw(PermissionError()))
     assert query()["errors"] == {"web": "permission_denied"}
+
+
+def _set_mtime(path, iso):
+    stamp = datetime.fromisoformat(iso.replace("Z", "+00:00")).timestamp()
+    os.utime(path, (stamp, stamp))
+
+
+def test_rotated_logs_are_read_with_primary_detection_refs(tmp_path, monkeypatch):
+    # logrotate 뒤: 구간 기록이 web.log.1·web.log.2.gz로 넘어가고 web.log에는 다음 날 기록만 있다
+    # (2026-10-01 EC2: 1차 탐지 근거 access.log.1:1988을 조사 도구가 못 읽어 0건)
+    local_log(tmp_path, monkeypatch, "web", web_line("2026-09-22T00:00:00Z") + "\n")
+    (tmp_path / "web.log.1").write_text(
+        web_line("2026-09-20T23:00:00Z") + "\n" + web_line("2026-09-21T00:00:40Z") + "\n", encoding="utf-8")
+    with gzip.open(tmp_path / "web.log.2.gz", "wt", encoding="utf-8") as stream:
+        stream.write(web_line(WINDOW[0]) + "\n")
+    # 구간 시작 전에 마지막으로 쓰인 교체 파일은 구간 기록이 있을 수 없어 읽지 않는다(1차 탐지와 같은 규칙)
+    with gzip.open(tmp_path / "web.log.3.gz", "wt", encoding="utf-8") as stream:
+        stream.write(web_line(WINDOW[0]) + "\n")
+    _set_mtime(tmp_path / "web.log.3.gz", "2026-09-20T12:00:00Z")
+
+    result = query()
+    assert [r["raw_ref"] for r in result["records"]] == ["web.log.2:1", "web.log.1:2"]
+    assert "errors" not in result or not result["errors"]
+
+
+def test_rotated_logs_without_current_file(tmp_path, monkeypatch):
+    # 교체 직후 새 파일이 아직 없을 때도 교체 파일을 읽는다
+    monkeypatch.setenv(LOCAL_PATH_ENV["web"], str(tmp_path / "web.log"))
+    (tmp_path / "web.log.1").write_text(web_line(WINDOW[0]) + "\n", encoding="utf-8")
+    assert [r["raw_ref"] for r in query()["records"]] == ["web.log.1:1"]
+
+
+def test_quiet_current_file_is_still_read(tmp_path, monkeypatch):
+    # 구간 이후 기록이 없어 현재 파일 mtime이 구간 시작보다 이르면: '파일 없음'이 아니라 0건
+    local_log(tmp_path, monkeypatch, "web", web_line("2026-09-20T00:00:00Z") + "\n")
+    _set_mtime(tmp_path / "web.log", "2026-09-20T00:00:01Z")
+    result = query()
+    assert result["count"] == 0 and not result.get("errors")
 
 
 def test_local_host_guard(tmp_path, monkeypatch):

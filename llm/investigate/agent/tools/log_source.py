@@ -1,7 +1,7 @@
 """로그 읽기·정규화 공용 계층 — 조사 도구들이 같은 경로로 로그를 읽게 한다.
 
 역할
-  .env의 계층별 로그 경로(APACHE/AUTH/AUDIT/SURICATA_LOG_PATH) 파일을 원본 그대로(파일명·줄 번호 보존) 읽고, 1차 탐지팀 공통 정규화로
+  .env의 계층별 로그 경로(APACHE/AUTH/AUDIT/SURICATA_LOG_PATH) 파일과 그 교체 파일(.1, .N.gz)을 원본 그대로(파일명·줄 번호 보존) 읽고, 1차 탐지팀 공통 정규화로
   구조화한 뒤 조회 구간 안의 이벤트만 돌려준다. 페이지네이션 인자 검사, 0건일 때 LLM에게 줄 안내문도
   여기서 만든다. 탐지 규칙이나 판정은 하지 않는다.
 
@@ -11,6 +11,7 @@
 
 무엇을 부르나
   [34] agent/tools/normalizer_adapter.py normalize_log_documents()  → 1차 탐지팀 정규화 함수
+  agent/tools/normalizer_adapter.py resolve_log_files()             → 1차 탐지팀 교체 로그 찾기
   agent/tools/time_utils.py parse_iso()
 """
 from __future__ import annotations
@@ -22,7 +23,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Iterable, List
 
-from .normalizer_adapter import normalize_log_documents
+from .normalizer_adapter import normalize_log_documents, resolve_log_files
 from .time_utils import parse_iso
 
 SOURCE_TYPES = {"web": "apache", "auth": "auth", "audit": "auditd", "network": "suricata"}
@@ -45,7 +46,13 @@ class LogPathNotConfigured(RuntimeError):
 
 # [33] 경유 — 로그 파일 원본 텍스트를 읽는다
 def read_documents(layer: str, host: str, start: datetime, end: datetime) -> List[LogDocument]:
-    """`.env`의 계층별 로그 경로(LOCAL_PATH_ENV, EC2라면 /var/log/...) 파일을 원본 그대로 읽는다.
+    """`.env`의 계층별 로그 경로(LOCAL_PATH_ENV, EC2라면 /var/log/...) 파일과 그 교체 파일을 원본 그대로 읽는다.
+
+    logrotate가 돌면 조회 구간의 기록이 access.log.1, access.log.2.gz 등으로 넘어간다. 예전에는 경로의 파일
+    하나만 읽어, 교체 전 사건을 교체 뒤에 조사하면 원본이 0건이었다(2026-10-01 EC2: 전날 사건의 1차 탐지 근거
+    access.log.1:1988을 못 읽어 INCONCLUSIVE). 1차 탐지와 같은 규칙(resolve_log_files)으로 조회 구간 시작
+    이후 수정된 파일만 오래된 순으로 읽는다. 구간 뒤로 기록이 없어 현재 파일도 걸러지면 현재 파일을 읽는다
+    (0건과 '파일 없음'을 구분하기 위해).
 
     LOG_LOCAL_HOST가 있으면 다른 host 조회를 거부한다. HOST는 여기서 쓰지 않는다 — main.py의
     수집 대상 이름이고, 합성 시나리오 seed(host=web-01)도 같은 로컬 파일을 읽어야 하기 때문이다.
@@ -58,20 +65,33 @@ def read_documents(layer: str, host: str, start: datetime, end: datetime) -> Lis
     configured_host = os.environ.get("LOG_LOCAL_HOST")
     if configured_host and configured_host != host:
         raise ValueError(f"local host mismatch: expected {configured_host}, got {host}")
-    path = Path(local_path).resolve()
+    base = Path(local_path).resolve()
+    paths = [Path(found) for found in resolve_log_files(str(base), since_dt=start)]
+    if not paths:
+        if not base.is_file():
+            raise FileNotFoundError(str(base))
+        paths = [base]
+    return [LogDocument(path.as_posix(), _read_text(path)) for path in paths]
+
+
+def _read_text(path: Path) -> str:
     if path.suffix == ".gz":
         with gzip.open(path, "rt", encoding="utf-8", errors="replace") as stream:
-            text = stream.read()
-    else:
-        text = path.read_text(encoding="utf-8", errors="replace")
-    return [LogDocument(path.as_posix(), text)]
+            return stream.read()
+    return path.read_text(encoding="utf-8", errors="replace")
 
 
 # [34] → normalizer_adapter.normalize_log_documents() → 1차 탐지팀 정규화, 결과를 한 단계 펼친다
 def normalize_documents(layer: str, documents: Iterable[LogDocument],
                         start: datetime, end: datetime) -> List[Dict[str, Any]]:
-    """Flatten the shared primary-detection schema, retaining trace metadata."""
-    events = normalize_log_documents(layer, ((doc.source, doc.text) for doc in documents), start, end)
+    """Flatten the shared primary-detection schema, retaining trace metadata.
+
+    파일마다 따로 정규화한다 — 한 번에 넘기면 어댑터가 합쳐서 raw_ref가 전체 경로가 되는데, 파일 하나씩이면
+    1차 탐지와 같은 "<파일명(.gz 제거)>:<줄 번호>"(예: access.log.1:1988)라 종료 관문이 탐지 근거와 맞춰 본다.
+    """
+    events = []
+    for doc in documents:
+        events += normalize_log_documents(layer, [(doc.source, doc.text)], start, end)
     return [{**{key: value for key, value in event.items() if key != "layer_data"},
              **event.get("layer_data", {})} for event in events]
 

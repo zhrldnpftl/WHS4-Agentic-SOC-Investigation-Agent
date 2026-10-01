@@ -11,12 +11,14 @@
 
 누가 부르나
   [34] agent/tools/log_source.py normalize_documents()   → normalize_log_documents()
+  [33] agent/tools/log_source.py read_documents()        → resolve_log_files()
   agent/tools/real/fetch_web_log.py (exclude_self)       → server_public_ip()
   tests/test_normalizer_parity.py, scripts/verify_all_tools.py → normalize_auth/audit/web/network()
 
 무엇을 부르나
   같은 저장소의 1차 탐지 원본 detection_pipeline/tools/fetch_apache_log.py, fetch_auth_log.py,
   fetch_audit_log.py, fetch_network_log.py (복사본 없이 직접 import, 1차 탐지팀 코드라 수정하지 않는다)
+  detection_pipeline/tools/log_sources.py resolve_log_files() — 교체된 로그(base.1, base.N.gz) 찾기
 
 주의 — 이름만 같고 다른 코드
   agent/tools/real/fetch_web_log.py·fetch_auth_log.py·fetch_audit_log.py·fetch_network_log.py는
@@ -47,7 +49,8 @@ import 방식
     127.0.0.1:8080)가 같이 떠 있고, apache 로그가 1차 탐지팀 형식과 컬럼 단위로 일치했다.
   - network(suricata) 정규화 함수는 src_ip/event_type/flow_id/signature만 필터로 지원해서, dst_ip·포트·
     프로토콜 필터는 agent/tools/real/fetch_network_log.py가 결과를 받은 뒤 거른다.
-  - 로그는 .env의 계층별 로그 경로(APACHE/AUTH/AUDIT/SURICATA_LOG_PATH) 파일에서만 읽는다(S3 읽기는 삭제).
+  - 로그는 .env의 계층별 로그 경로(APACHE/AUTH/AUDIT/SURICATA_LOG_PATH) 파일과 그 교체 파일에서만 읽는다
+    (S3 읽기는 삭제). 교체 파일을 고르는 규칙은 1차 탐지와 같다(resolve_log_files).
 """
 from __future__ import annotations
 
@@ -117,6 +120,12 @@ with _without_detection_dotenv():
     _normalize_auth_events = _load_detection_module("fetch_auth_log").fetch_auth_log
     _normalize_audit_events = _load_detection_module("fetch_audit_log").fetch_audit_log
     _normalize_network_events = _load_detection_module("fetch_network_log").fetch_network_log
+    _resolve_log_files = _load_detection_module("log_sources").resolve_log_files
+
+
+def resolve_log_files(base_path: str, since_dt=None) -> List[str]:
+    """1차 탐지 resolve_log_files() 그대로 — base_path와 교체 파일 중 since_dt 이후 수정된 것을 오래된 순으로."""
+    return _resolve_log_files(base_path, since_dt=since_dt)
 
 
 def server_public_ip() -> str:
