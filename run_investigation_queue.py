@@ -26,6 +26,7 @@ import os
 import subprocess
 import sys
 import tempfile
+import time
 from datetime import datetime, timedelta, timezone
 
 _ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -76,8 +77,10 @@ def _incident_from_row(row):
 
 
 def _run_agent_subprocess(incident_file):
-    """조사 에이전트를 블랙박스 CLI로 실행한다(cwd=repo 루트 — .env·로그 경로 공유)."""
-    subprocess.run([sys.executable, AGENT_MAIN, incident_file], cwd=_ROOT, check=True)
+    """조사 에이전트를 블랙박스 CLI로 실행한다(cwd=repo 루트 — .env·로그 경로 공유).
+
+    -u: 출력이 파이프(systemd 저널·tee)여도 에이전트 진행 줄([조사] ...)이 버퍼에 묶이지 않고 바로 보이게."""
+    subprocess.run([sys.executable, "-u", AGENT_MAIN, incident_file], cwd=_ROOT, check=True)
 
 
 def _result_status(results_dir, before, key, incident_id):
@@ -148,12 +151,19 @@ def run(state_dir, limit=20, stale_minutes=30, run_agent=_run_agent_subprocess,
         if reclaimed:
             print("[investigate] stale 회수 %d건(investigating→pending)" % reclaimed)
         results = {}
-        for row in list_queue(conn, limit=limit):
+        queue = list_queue(conn, limit=limit)
+        print("[investigate] 대기열 %d건 조사 시작(limit %d)" % (len(queue), limit), flush=True)
+        for index, row in enumerate(queue, 1):
             key = row["incident_key"]
+            print("[investigate] (%d/%d) %s %s %s %s=%s — 조사 에이전트 실행"
+                  % (index, len(queue), key, row.get("incident_id") or "-", row.get("priority") or "-",
+                     row.get("entity_type") or "-", row.get("entity_value") or "-"), flush=True)
+            started = time.monotonic()
             outcome = investigate_one(conn, key, run_agent=run_agent, results_dir=results_dir)
             results[key] = outcome
-            print("[investigate] %s → %s" % (key, outcome))
-    print("[investigate] 처리 %d건" % len(results))
+            print("[investigate] (%d/%d) %s → %s (%.1fs)"
+                  % (index, len(queue), key, outcome, time.monotonic() - started), flush=True)
+    print("[investigate] 처리 %d건" % len(results), flush=True)
     return {"processed": len(results), "results": results}
 
 

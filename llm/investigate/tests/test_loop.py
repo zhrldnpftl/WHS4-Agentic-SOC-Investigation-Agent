@@ -236,6 +236,39 @@ def test_duplicate_tool_call_is_skipped() -> None:
     print("[PASS] test_duplicate_tool_call_is_skipped")
 
 
+def test_progress_reports_llm_and_tool_steps() -> None:
+    """progress 콜백이 시작·LLM 요청/응답·도구 실행·중복 스킵·끝을 한 줄씩 받는지 확인.
+
+    progress가 없으면 아무것도 출력하지 않고, 있어도 결과 JSON은 같아야 한다.
+    """
+    same_call = {"tool_name": "fetch_auth_log", "args": {"host": "h1", "start_time": "a", "end_time": "b"}, "reasoning": "재확인"}
+    decisions = [
+        {"facts": [], "hypotheses": [], "unknowns": [], "new_evidence": [], "next_action": "call_tool", "tool_call": same_call, "termination_reason": None, "final_verdict": None, "investigation_notes": []},
+        {"facts": [], "hypotheses": [], "unknowns": [], "new_evidence": [], "next_action": "call_tool", "tool_call": same_call, "termination_reason": None, "final_verdict": None, "investigation_notes": []},
+        {"facts": [], "hypotheses": [], "unknowns": [], "new_evidence": [], "next_action": "terminate", "tool_call": None, "termination_reason": "no_more_evidence", "final_verdict": {"verdict": "INCONCLUSIVE", "confidence": 0.5, "severity": "LOW", "attack_type": "unknown", "affected_systems": []}, "investigation_notes": []},
+    ]
+    lines: List[str] = []
+    agent = InvestigationAgent(FakeLLMClient(decisions), _mock_only_registry(), max_calls=8,
+                               confidence_threshold=0.85, progress=lines.append)
+    result = agent.run(SEED)
+
+    assert lines[0].startswith("[조사] INC-001 시작 — src_ip=203.0.113.45")
+    assert any("LLM 판단 #1 요청 중... (도구 0/8회" in line for line in lines)
+    assert any("LLM #1 응답" in line and "도구 요청 fetch_auth_log" in line for line in lines)
+    assert any("도구 #1 fetch_auth_log(start_time=a, end_time=b) → " in line for line in lines), \
+        "도구 실행 줄에 host는 빼고 인자를 보여야 한다"
+    assert any("도구 실행 안 함: " in line and "중복 호출 스킵" in line for line in lines)
+    assert any("종료 요청 INCONCLUSIVE/LOW (no_more_evidence)" in line for line in lines)
+    assert lines[-1].startswith("[조사] INC-001 끝 — INCONCLUSIVE/LOW")
+    assert "도구 1회·LLM 3회" in lines[-1]
+
+    quiet = InvestigationAgent(FakeLLMClient(decisions), _mock_only_registry(), max_calls=8,
+                               confidence_threshold=0.85).run(SEED)
+    assert quiet["statistics"]["tool_calls_count"] == result["statistics"]["tool_calls_count"] == 1
+    assert quiet["final_verdict"] == result["final_verdict"]
+    print("[PASS] test_progress_reports_llm_and_tool_steps")
+
+
 def test_max_call_forces_termination() -> None:
     """LLM이 계속 call_tool만 반환해도 max_calls에서 강제 종료되는지 확인."""
 
@@ -532,6 +565,7 @@ def test_real_tool_auto_discovery() -> None:
 if __name__ == "__main__":
     test_happy_path_terminates_with_threat_confirmed()
     test_duplicate_tool_call_is_skipped()
+    test_progress_reports_llm_and_tool_steps()
     test_max_call_forces_termination()
     test_tool_failure_does_not_stop_investigation()
     test_confidence_sufficient_blocked_when_single_tool_type()

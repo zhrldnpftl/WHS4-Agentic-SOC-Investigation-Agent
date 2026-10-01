@@ -92,6 +92,9 @@ def main(argv=None) -> None:
     tool_registry = build_default_registry(exclude=["resolve_ip_geo"])
     # [3] → agent/llm_provider.py build_llm_client(): 기본 Claude, INVESTIGATION_LLM_PROVIDER=gemini면 Gemini
     llm_client = build_llm_client()
+    model = getattr(llm_client, "model", None) or getattr(llm_client, "model_name", None) or "-"
+    print(f"[조사] 사건 {len(incidents)}건, 도구 {len(tool_registry.list_tools())}개, "
+          f"LLM {type(llm_client).__name__}({model})", flush=True)
 
     # [45] 결과 저장 — 사건 하나가 끝날 때마다 바로 저장한다. 뒤 사건에서 예외(API 키 오류 등)로
     #      실행이 멈춰도 앞서 끝난 사건 결과는 남는다.
@@ -121,6 +124,8 @@ def main(argv=None) -> None:
         network_precheck=True,      # 사건에 src_ip가 있으면 network를 코드가 먼저 조회
         strict_termination=True,    # 종료 관문 강화 + 판정이 도구 계산 기준과 어긋나면 종료 거부
         on_result=save,
+        # 사건 하나에 수 분 걸리므로 LLM 호출·도구 실행을 한 줄씩 바로 보여 준다(폴러가 파이프로 받아도 즉시 보이게 flush)
+        progress=lambda message: print(message, flush=True),
     )
 
     print(f"\n--- 저장된 조사 결과 JSON {len(saved_paths)}건 ---")

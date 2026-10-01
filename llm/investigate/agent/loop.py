@@ -33,8 +33,9 @@
 from __future__ import annotations
 
 import re
+import time
 from datetime import timedelta, timezone
-from typing import Any, Dict, Optional
+from typing import Any, Callable, Dict, Optional
 
 from .llm_errors import LLMUnavailableError
 from .models import AgentState, Evidence, Hypothesis, TerminationReason, ToolCallRecord, VerdictType
@@ -121,11 +122,17 @@ class InvestigationAgent:
         confidence_threshold: float = 0.85,
         network_precheck: bool = False,
         strict_termination: bool = False,
+        progress: Optional[Callable[[str], None]] = None,
     ) -> None:
         self.llm_client = llm_client
         self.tool_registry = tool_registry
         self.max_calls = max_calls
         self.confidence_threshold = confidence_threshold
+        # 진행 상황 한 줄씩 받는 콜백(main.py는 print). None이면 아무것도 출력하지 않는다 — 결과 JSON과 무관.
+        # 사건 하나에 LLM·도구 호출이 여러 번이라 수 분 걸리는데, 결과 파일 경로만 찍던 때는 그동안
+        # 커서만 깜빡여 멈춘 건지 알 수 없었다(2026-09-30 EC2).
+        self.progress = progress
+        self._llm_calls = 0  # 진행 표시용 LLM 호출 번호 (run()마다 0으로 되돌림)
         # 둘 다 main.py(pipeline) 경로에서 켠다. 기본값 False는 각본대로 흘러가는 기존
         # 단위 테스트·C/D 데모(도구 1회 후 no_more_evidence)를 그대로 두기 위함.
         self.network_precheck = network_precheck
@@ -135,6 +142,29 @@ class InvestigationAgent:
     # 클라이언트 모듈을 import하지 않으려고 클래스 이름("...DecisionError")으로 판별한다.
     LLM_RESPONSE_RETRIES = 1
 
+    def _emit(self, message: str) -> None:
+        if self.progress is not None:
+            self.progress(message)
+
+    @staticmethod
+    def _short_args(args: Dict[str, Any]) -> str:
+        """진행 표시용 도구 인자 요약 — host·사건 전체(event)는 빼고 100자로 자른다."""
+        text = ", ".join(f"{k}={v}" for k, v in args.items() if k not in ("host", "event"))
+        return text if len(text) <= 100 else text[:97] + "..."
+
+    def _report_tool_call(self, state: AgentState, calls_before: int, started: float, label: str) -> None:
+        """방금 실행한 도구 호출 한 건을 진행 표시로 알린다."""
+        if self.progress is None:
+            return
+        if len(state.tool_calls) <= calls_before:
+            # 중복 호출 스킵·tool_call 누락 — 사유는 방금 남긴 notes 마지막 줄에 있다
+            self._emit(f"[조사]   {label} 실행 안 함: {state.notes[-1][:100] if state.notes else '-'}")
+            return
+        call = state.tool_calls[-1]
+        outcome = f"{call.result_count}건" if call.success else f"실패: {str(call.error)[:80]}"
+        self._emit(f"[조사]   {label} #{call.sequence} {call.tool_name}({self._short_args(call.input)})"
+                   f" → {outcome} ({time.monotonic() - started:.1f}s)")
+
     def _safe_reason(self, state: AgentState, **kwargs: Any) -> Optional[Dict[str, Any]]:
         """[20] → llm_client.reason() 호출. 응답 해석 실패는 1회 재시도하고, 그래도 실패하면 None.
 
@@ -143,16 +173,40 @@ class InvestigationAgent:
         API 키·권한 같은 설정 오류는 그대로 올려 보내 원인이 가려지지 않게 한다.
         """
         for attempt in range(self.LLM_RESPONSE_RETRIES + 1):
+            self._llm_calls += 1
+            number = self._llm_calls
+            kind = "마무리 판정" if kwargs.get("force_terminate") else "판단"
+            self._emit(f"[조사]   LLM {kind} #{number} 요청 중... "
+                       f"(도구 {len(state.tool_calls)}/{self.max_calls}회, 신뢰도 {state.current_confidence:.2f})")
+            started = time.monotonic()
             try:
-                return self.llm_client.reason(state, self.tool_registry, **kwargs)
+                decision = self.llm_client.reason(state, self.tool_registry, **kwargs)
+                self._emit(f"[조사]   LLM #{number} 응답 ({time.monotonic() - started:.1f}s) → "
+                           + self._describe_decision(decision))
+                return decision
             except Exception as exc:
                 if not type(exc).__name__.endswith("DecisionError"):
                     raise
+                self._emit(f"[조사]   LLM #{number} 응답 해석 실패 ({time.monotonic() - started:.1f}s)")
                 # 첫 줄에 오류와 응답 앞부분이 있다(agent/llm_json.py) — 원인을 나중에 확인할 수 있게 남긴다
                 first_line = str(exc).splitlines()[0][:400]
                 state.notes.append(f"LLM 응답 해석 실패({attempt + 1}회차): {first_line}")
         state.notes.append("LLM 응답을 연속으로 해석하지 못해, 지금까지의 증거로 자동 폴백 판정했습니다.")
         return None
+
+    @staticmethod
+    def _describe_decision(decision: Any) -> str:
+        """진행 표시용 LLM 결정 요약: 다음 행동과 새 증거 수."""
+        if not isinstance(decision, dict):
+            return "결정 없음"
+        evidence = len(decision.get("new_evidence") or [])
+        suffix = f" (새 증거 {evidence}건)" if evidence else ""
+        if decision.get("next_action") == "terminate" or decision.get("final_verdict"):
+            verdict = decision.get("final_verdict") or {}
+            return (f"종료 요청 {verdict.get('verdict', '?')}/{verdict.get('severity', '?')} "
+                    f"({decision.get('termination_reason') or '-'})" + suffix)
+        tool = (decision.get("tool_call") or {}).get("tool_name") or "?"
+        return f"도구 요청 {tool}" + suffix
 
     def _run_network_precheck(self, state: AgentState) -> None:
         """[19-1] seed에 src_ip가 있으면 첫 LLM 턴 전에 fetch_network_log를 코드가 직접 한 번 실행한다.
@@ -163,7 +217,9 @@ class InvestigationAgent:
         args = network_precheck_args(state.seed)
         if args is None or "fetch_network_log" not in {s.name for s in self.tool_registry.list_tools()}:
             return
+        calls_before, started = len(state.tool_calls), time.monotonic()
         self._execute_tool_call(state, {"tool_name": "fetch_network_log", "args": args})
+        self._report_tool_call(state, calls_before, started, "사전 조회")
         if state.tool_calls:
             state.system_call_sequences.append(state.tool_calls[-1].sequence)
         state.notes.append(
@@ -177,6 +233,11 @@ class InvestigationAgent:
         state.raw_refs = references(seed, seed=True)   # seed가 인용한 원본 참조도 "관측됨"으로 등록
         state.current_confidence = float(seed.get("confidence_initial", 0.5))
         state.record_confidence("initial", seed.get("trigger_description", "Triage 판정"))
+        self._llm_calls = 0
+        run_started = time.monotonic()
+        rules = (seed.get("detection") or {}).get("rules") or []
+        self._emit(f"[조사] {seed['incident_id']} 시작 — src_ip={seed.get('src_ip') or '-'}, "
+                   f"window={seed.get('window') or seed.get('trigger_time') or '-'}, 1차 탐지 룰 {len(rules)}건")
         if seed.get("src_ip"):
             # IP 사건의 window·trigger_time은 1차 탐지가 본 그 IP의 요청 시각이다 (웹 서버 명령 연결 근거)
             state.src_ip_request_times = list(dict.fromkeys(
@@ -212,6 +273,10 @@ class InvestigationAgent:
         result = build_investigation_result(state, termination_reason, final_verdict,
                                             incomplete_reason=incomplete_reason)
         result["statistics"]["tool_calls_max"] = self.max_calls
+        self._emit(f"[조사] {seed['incident_id']} 끝 — {(final_verdict or {}).get('verdict')}/"
+                   f"{(final_verdict or {}).get('severity')} 신뢰도 {state.current_confidence:.2f}, "
+                   f"종료 사유 {termination_reason}, 도구 {len(state.tool_calls)}회·LLM {self._llm_calls}회, "
+                   f"{time.monotonic() - run_started:.1f}s")
         # [42] → agent/pipeline.py [16]으로 조사 결과를 돌려준다
         return result
 
@@ -282,6 +347,8 @@ class InvestigationAgent:
                 if reasons:
                     reason_text = ", ".join(reasons)
                     state.notes.append(f"종료 관문 발동 — 종료 거부: {reason_text}")
+                    self._emit(f"[조사]   종료 관문 거부 → 조사 계속: "
+                               + (reason_text if len(reason_text) <= 120 else reason_text[:117] + "..."))
                     proposed = decision.get("final_verdict")
                     if self.strict_termination and proposed and not self._verdict_conflicts(state, proposed):
                         last_consistent_verdict = proposed  # 판정은 원칙과 맞았고 다른 사유로 거부됨
@@ -341,8 +408,9 @@ class InvestigationAgent:
 
             # [27] 종료가 아니면 = LLM이 "이 도구를 부르자"고 한 것 → [28] _execute_tool_call()로 실제 실행
             # [39] ← 도구 결과는 state.pending_observations에 담겨 다음 턴 프롬프트로 LLM에게 간다
-            calls_before = len(state.tool_calls)
+            calls_before, started = len(state.tool_calls), time.monotonic()
             self._execute_tool_call(state, decision.get("tool_call") or {})
+            self._report_tool_call(state, calls_before, started, "도구")
             if len(state.tool_calls) > calls_before:
                 # 새 도구를 실행했으면 진전이 있는 것 — 연속 거부 횟수를 다시 센다. EC2 xmlrpc 사건에서
                 # 거부 → web 조회 → 거부가 "연속 2회"로 세어져 강제 종료된 적이 있다.

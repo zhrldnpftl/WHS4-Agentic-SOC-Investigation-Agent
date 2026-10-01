@@ -4,12 +4,14 @@
 에이전트 오류→pending, stale 회수, 빈 큐 no-op 을 확인한다.
 실행: python tests/test_investigation_queue.py  또는  python -m unittest
 """
+import io
 import json
 import os
 import shutil
 import sys
 import tempfile
 import unittest
+from contextlib import redirect_stdout
 from datetime import datetime, timezone
 
 _ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -100,6 +102,16 @@ class QueueTest(unittest.TestCase):
         q.run(self.dir, run_agent=self._fake("DONE"), results_dir=self.results, now=NOW)
         res = q.run(self.dir, run_agent=self._fake("DONE"), results_dir=self.results, now=NOW)
         self.assertEqual(res["processed"], 0)
+
+    def test_progress_lines(self):
+        # 대기열 시작·사건별 (n/N) 실행/결과 줄이 찍혀야 한다 — 몇 번째 사건을 조사 중인지 보이게
+        out = io.StringIO()
+        with redirect_stdout(out):
+            q.run(self.dir, run_agent=self._fake("THREAT_CONFIRMED"), results_dir=self.results, now=NOW)
+        text = out.getvalue()
+        self.assertIn("[investigate] 대기열 1건 조사 시작(limit 20)", text)
+        self.assertIn("[investigate] (1/1) %s INC-1 P1 src_ip=45.9.1.2 — 조사 에이전트 실행" % self.key, text)
+        self.assertRegex(text, r"\[investigate\] \(1/1\) %s → \S+ \(\d+\.\ds\)" % self.key)
 
     def test_stale_investigating_is_reclaimed(self):
         conn = connect(self.db)
