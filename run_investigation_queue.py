@@ -79,7 +79,7 @@ def _incident_from_row(row):
 def _run_agent_subprocess(incident_file):
     """조사 에이전트를 블랙박스 CLI로 실행한다(cwd=repo 루트 — .env·로그 경로 공유).
 
-    -u: 출력이 파이프(systemd 저널·tee)여도 에이전트 진행 줄([조사] ...)이 버퍼에 묶이지 않고 바로 보이게."""
+    -u: 출력이 파이프(systemd 저널·tee)여도 에이전트 진행 줄([agent]·[llm]·[tool] ...)이 버퍼에 묶이지 않고 바로 보이게."""
     subprocess.run([sys.executable, "-u", AGENT_MAIN, incident_file], cwd=_ROOT, check=True)
 
 

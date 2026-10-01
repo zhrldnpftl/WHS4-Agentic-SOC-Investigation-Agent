@@ -252,15 +252,22 @@ def test_progress_reports_llm_and_tool_steps() -> None:
                                confidence_threshold=0.85, progress=lines.append)
     result = agent.run(SEED)
 
-    assert lines[0].startswith("[조사] INC-001 시작 — src_ip=203.0.113.45")
-    assert any("LLM 판단 #1 요청 중... (도구 0/8회" in line for line in lines)
-    assert any("LLM #1 응답" in line and "도구 요청 fetch_auth_log" in line for line in lines)
-    assert any("도구 #1 fetch_auth_log(start_time=a, end_time=b) → " in line for line in lines), \
+    # 1차 탐지처럼 단계별 접두어: [agent] 시작·끝, [llm] 요청·응답, [tool] 도구 실행
+    assert lines[0].startswith("[agent] INC-001 시작 — src_ip=203.0.113.45")
+    assert any(line.startswith("[llm] 판단 #1 요청 중... (도구 0/8회") for line in lines)
+    assert any(line.startswith("[llm] #1 응답") and "도구 요청 fetch_auth_log" in line for line in lines)
+    assert any(line.startswith("[tool] #1 fetch_auth_log(start_time=a, end_time=b) → ") for line in lines), \
         "도구 실행 줄에 host는 빼고 인자를 보여야 한다"
-    assert any("도구 실행 안 함: " in line and "중복 호출 스킵" in line for line in lines)
+    assert any(line.startswith("[tool] 실행 안 함: ") and "중복 호출 스킵" in line for line in lines)
     assert any("종료 요청 INCONCLUSIVE/LOW (no_more_evidence)" in line for line in lines)
-    assert lines[-1].startswith("[조사] INC-001 끝 — INCONCLUSIVE/LOW")
+    assert lines[-1].startswith("[agent] INC-001 끝 — INCONCLUSIVE/LOW")
     assert "도구 1회·LLM 3회" in lines[-1]
+
+    # src_ip 사건의 network 사전 조회(코드가 LLM보다 먼저 실행)는 [precheck]로 구분된다
+    precheck_lines: List[str] = []
+    InvestigationAgent(FakeLLMClient(decisions[2:]), _mock_only_registry(), max_calls=8, confidence_threshold=0.85,
+                       network_precheck=True, progress=precheck_lines.append).run(SEED)
+    assert any(line.startswith("[precheck] #1 fetch_network_log(") for line in precheck_lines)
 
     quiet = InvestigationAgent(FakeLLMClient(decisions), _mock_only_registry(), max_calls=8,
                                confidence_threshold=0.85).run(SEED)
@@ -508,12 +515,15 @@ def test_src_ip_seed_requires_network_log() -> None:
     ]
     llm = FakeLLMClient(decisions)
     registry = _mock_only_registry()
-    agent = InvestigationAgent(llm, registry, max_calls=8, confidence_threshold=0.85)
+    lines: List[str] = []
+    agent = InvestigationAgent(llm, registry, max_calls=8, confidence_threshold=0.85, progress=lines.append)
 
     # SEED는 모듈 상단에서 이미 src_ip="203.0.113.45"를 갖고 있음
     result = agent.run(SEED)
 
     assert llm.call_count == 5, f"예상과 다른 호출 횟수: {llm.call_count}"
+    assert any(line.startswith("[gate] 종료 거부 → 조사 계속: ") and "fetch_network_log" in line
+               for line in lines), "종료 관문 거부가 [gate] 줄로 보여야 한다"
     assert any(
         "fetch_network_log로 네트워크 활동을 확인하지 않음" in n
         for n in result["investigation_notes"]

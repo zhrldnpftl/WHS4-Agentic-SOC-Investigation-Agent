@@ -93,7 +93,7 @@ def main(argv=None) -> None:
     # [3] → agent/llm_provider.py build_llm_client(): 기본 Claude, INVESTIGATION_LLM_PROVIDER=gemini면 Gemini
     llm_client = build_llm_client()
     model = getattr(llm_client, "model", None) or getattr(llm_client, "model_name", None) or "-"
-    print(f"[조사] 사건 {len(incidents)}건, 도구 {len(tool_registry.list_tools())}개, "
+    print(f"[agent] 사건 {len(incidents)}건, 도구 {len(tool_registry.list_tools())}개, "
           f"LLM {type(llm_client).__name__}({model})", flush=True)
 
     # [45] 결과 저장 — 사건 하나가 끝날 때마다 바로 저장한다. 뒤 사건에서 예외(API 키 오류 등)로
