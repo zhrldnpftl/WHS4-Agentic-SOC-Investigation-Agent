@@ -1,0 +1,5 @@
+# 실제 트래픽(IP·요청)이 들어 있어 저장소에 올리지 않는다
+logs/
+runs/
+incidents/
+summary_*.csv
