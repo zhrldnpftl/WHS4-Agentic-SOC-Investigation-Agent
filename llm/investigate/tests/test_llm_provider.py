@@ -66,10 +66,10 @@ def test_gemini_key_prefers_investigation_key(monkeypatch, capsys):
 
 
 def test_unknown_provider_is_clear_error(monkeypatch):
-    monkeypatch.setenv("INVESTIGATION_LLM_PROVIDER", "openai")
+    monkeypatch.setenv("INVESTIGATION_LLM_PROVIDER", "llama")
     with pytest.raises(ValueError, match="INVESTIGATION_LLM_PROVIDER"):
         build_llm_client()
-    monkeypatch.setenv("MAPPING_LLM_PROVIDER", "openai")
+    monkeypatch.setenv("MAPPING_LLM_PROVIDER", "llama")
     with pytest.raises(ValueError, match="MAPPING_LLM_PROVIDER"):
         build_llm_client("MAPPING")
 

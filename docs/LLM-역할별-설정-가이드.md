@@ -74,6 +74,9 @@ INVESTIGATION_CLAUDE_MODEL=<고성능 모델>
 | `<접두어>CLAUDE_REFUSAL_FALLBACK_MODEL` | 안전 필터 거절 시 다시 보낼 모델, `none`이면 끔 | `claude-sonnet-4-6` | X | O |
 | `<접두어>CLAUDE_EFFORT` | 추론 강도 `low`~`max` | 보내지 않음 | X | O |
 | `<접두어>GEMINI_API_KEY`, `<접두어>GEMINI_MODEL` | Gemini를 쓸 때 | `GEMINI_API_KEY`, `gemini-3.5-flash-lite` | X | O |
+| `<접두어>OPENAI_API_KEY` | GPT를 쓸 때 그 단계 전용 키 (`<접두어>LLM_PROVIDER=openai`) | 공용 `OPENAI_API_KEY` | X | O |
+| `<접두어>OPENAI_MODEL` | GPT 모델 — **기본값 없음, 반드시 지정** | (없으면 설정 오류) | X | O |
+| `<접두어>OPENAI_REASONING_EFFORT` | GPT 추론 강도 `minimal`~`high` | 보내지 않음 | X | O |
 
 - **API 키만 공용 키로 넘어갑니다.** 모델이나 provider는 다른 단계 값을 절대 빌려 오지 않습니다.
 - **역할 전용 키는 선택입니다.** 넣으면 Anthropic 콘솔에서 키마다 사용량이 따로 보여 단계별 비용을 비교하기 쉽습니다.
@@ -151,7 +154,9 @@ sed -i -E 's/^(LLM_PROVIDER|CLAUDE_MODEL|CLAUDE_REFUSAL_FALLBACK_MODEL)=/INVESTI
 Anthropic 콘솔에서 키별 사용량으로 나눠 볼 수 있습니다.
 
 **Q. GPT 모델은요?**
-아직 지원하지 않습니다. 매핑과 조사 에이전트는 이 구조에 GPT 클라이언트만 추가하면 `MAPPING_LLM_PROVIDER=openai`처럼 쓸 수 있게 할 예정입니다.
+조사 에이전트와 매핑은 지원합니다(`agent/gpt_client.py`, 2026-10-02). `.env`에 `OPENAI_API_KEY`와
+`INVESTIGATION_LLM_PROVIDER=openai`, `INVESTIGATION_OPENAI_MODEL=<모델>`을 넣으면 됩니다(매핑은 `MAPPING_`).
+모델 기본값은 없어서 반드시 지정해야 합니다. ChatGPT 구독이 아니라 platform.openai.com의 API 키가 필요합니다.
 트리아지는 Claude 전용 코드라 1차 탐지 팀과 따로 상의가 필요합니다.
 
 **Q. 대응 권고 단계가 생기면요?**

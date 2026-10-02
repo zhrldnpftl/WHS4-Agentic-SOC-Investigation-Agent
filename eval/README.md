@@ -82,7 +82,31 @@ eval/runs/<단계>/<모델>/run<회차>/
 - 비용은 토큰 수에 모델별 단가를 곱해 계산합니다(단가는 Anthropic 가격표 기준).
 - 매핑 단계 단독 실행(6번)은 매핑 CLI가 토큰을 기록하지 않아, 비용은 Anthropic 콘솔 사용량으로 봅니다.
 
+## GPT 모델 비교
+
+`run_eval.sh`는 모델 이름이 `gpt-*` 또는 `o<숫자>*`이면 OpenAI(GPT)로, 그 밖은 Claude로 넘깁니다
+(다른 이름이면 `PROVIDER=openai`를 앞에 붙입니다). 매핑은 그대로 `MAPPING_MODEL`(기본 Claude haiku)로 고정됩니다.
+
+```bash
+# 1. .env에 OpenAI API 키 추가 (ChatGPT 구독이 아니라 platform.openai.com API 키)
+echo 'OPENAI_API_KEY=발급받은_키' >> .env
+
+# 2. 쓸 수 있는 모델 이름 조회 (비용 없음) — 이름을 짐작하지 말고 여기서 고른다
+python -c "
+from dotenv import load_dotenv; load_dotenv('.env')
+from openai import OpenAI
+print('\n'.join(sorted(m.id for m in OpenAI().models.list() if m.id.startswith(('gpt', 'o')))))"
+
+# 3. Claude와 같은 사건 9건으로 실행 → 요약
+bash eval/run_eval.sh investigation <GPT mini 모델 이름> 1
+bash eval/run_eval.sh investigation <GPT 상위 모델 이름> 1
+python eval/eval_tool.py summarize
+```
+
+GPT 결과도 `results/llm_usage/`에 같은 키(입력·출력·캐시 읽기 토큰)로 기록돼 Claude와 한 표에서 비교됩니다.
+GPT 단가는 OpenAI 가격표 기준으로 따로 계산합니다.
+
 ## 지금 한계
 
 - 트리아지는 Claude만 지원합니다. GPT 비교는 트리아지 코드 수정이 필요합니다(가이드 문서 "추후 과제").
-- `run_eval.sh`는 Anthropic 모델만 넘깁니다. GPT 클라이언트를 추가할 때 provider 선택을 함께 넣습니다.
+- GPT는 거절 시 다른 모델로 다시 보내지 않습니다(Claude도 비교 중에는 끔).

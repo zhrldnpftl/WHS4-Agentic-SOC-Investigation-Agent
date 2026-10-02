@@ -20,6 +20,8 @@
                                               모델 <역할>_CLAUDE_MODEL
   agent/gemini_client.py GeminiClient(role)   <역할>_GEMINI_API_KEY → 없으면 GEMINI_API_KEY,
                                               모델 <역할>_GEMINI_MODEL(기본 gemini-3.5-flash-lite)
+  agent/gpt_client.py    GPTClient(role)      <역할>_OPENAI_API_KEY → 없으면 OPENAI_API_KEY,
+                                              모델 <역할>_OPENAI_MODEL(기본값 없음 — 반드시 지정). provider 이름 openai(별칭 gpt)
 """
 
 from __future__ import annotations
@@ -29,12 +31,18 @@ from typing import Any
 from .settings import INVESTIGATION, role_setting
 
 DEFAULT_PROVIDER = "anthropic"
-PROVIDERS = ("anthropic", "gemini")
+PROVIDERS = ("anthropic", "gemini", "openai")
+PROVIDER_ALIASES = {"gpt": "openai"}
 
 
 def build_llm_client(role: str = INVESTIGATION) -> Any:
     """<role>_LLM_PROVIDER 환경변수(비어 있으면 anthropic)로 그 역할의 LLM 클라이언트를 만든다."""
     provider = (role_setting(role, "LLM_PROVIDER") or DEFAULT_PROVIDER).strip().lower()
+    provider = PROVIDER_ALIASES.get(provider, provider)
+    if provider == "openai":
+        from .gpt_client import GPTClient
+
+        return GPTClient(role=role)  # <역할>_OPENAI_API_KEY 또는 OPENAI_API_KEY, <역할>_OPENAI_MODEL 필요
     if provider == "anthropic":
         from .claude_client import ClaudeClient
 

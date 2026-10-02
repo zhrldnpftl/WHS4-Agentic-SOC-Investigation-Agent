@@ -1,5 +1,7 @@
 anthropic>=1.5.0,<2
 google-genai>=0.3.0
+# <역할>_LLM_PROVIDER=openai(GPT)일 때만 쓴다 — agent/gpt_client.py
+openai>=1.40,<3
 python-dotenv>=1.0.0
 pyyaml>=6.0
 pytest>=8.0
