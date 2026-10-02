@@ -59,9 +59,17 @@ def read_labels(path: Optional[str] = None) -> Dict[str, Dict[str, str]]:
     path = path or os.path.join(INCIDENTS_DIR, "labels.csv")
     if not os.path.exists(path):
         return {}
+    labels = {}
     with open(path, encoding="utf-8-sig", newline="") as stream:
-        return {row["incident_id"].strip(): {k: (v or "").strip() for k, v in row.items()}
-                for row in csv.DictReader(stream) if (row.get("incident_id") or "").strip()}
+        for row in csv.DictReader(stream):
+            # 메모에 쉼표를 넣으면 칸이 넘쳐 csv가 None 키에 리스트로 담는다 — 멈추지 않고 note 뒤에 붙인다
+            extra = row.pop(None, None) or []
+            if extra:
+                row["note"] = ",".join([row.get("note") or ""] + list(extra))
+            iid = (row.get("incident_id") or "").strip()
+            if iid:
+                labels[iid] = {k: (v or "").strip() for k, v in row.items()}
+    return labels
 
 
 def parse_bool(value: str) -> Optional[bool]:

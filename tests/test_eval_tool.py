@@ -131,6 +131,15 @@ class EvalToolTest(unittest.TestCase):
         self.assertEqual({r["input_tokens_run"] for r in triage_rows}, {"5000"})
         self.assertIn("놓친 공격", out)
 
+    def test_labels_with_comma_in_note(self):
+        # 메모에 쉼표가 들어가 칸이 넘쳐도 멈추지 않고 정답을 읽는다 (2026-10-03 EC2)
+        _write(os.path.join(self.dir, "incidents", "labels.csv"),
+               "incident_id,expected_investigate,expected_verdict,expected_techniques,note\n"
+               "INC-A,false,FALSE_POSITIVE,,모두 404, 침해 신호 없음\n")
+        label = eval_tool.read_labels()["INC-A"]
+        self.assertEqual(label["expected_verdict"], "FALSE_POSITIVE")
+        self.assertIn("침해 신호 없음", label["note"])
+
     def test_summarize_without_runs(self):
         code, out = self._run("summarize")
         self.assertEqual(code, 0)
