@@ -31,6 +31,7 @@ def _client(monkeypatch, outcomes):
     client = object.__new__(GeminiClient)
     client._client = types.SimpleNamespace(models=types.SimpleNamespace(generate_content=generate_content))
     client.model = "gemini-test"
+    client.max_output_tokens, client.temperature = 8192, 0.0   # complete_json()이 설정을 만들 때 쓴다
     return client, calls
 
 
@@ -50,6 +51,30 @@ def test_transient_error_then_success_returns_response(monkeypatch):
     client, calls = _client(monkeypatch, [_api_error(503), "ok"])
     assert client._generate_with_retry("prompt", config=None) == "ok"
     assert len(calls) == 2
+
+
+def _response(text, finish="STOP"):
+    usage = types.SimpleNamespace(prompt_token_count=1000, cached_content_token_count=300,
+                                  candidates_token_count=150, thoughts_token_count=50)
+    return types.SimpleNamespace(text=text, usage_metadata=usage,
+                                 candidates=[types.SimpleNamespace(finish_reason=finish)])
+
+
+def test_usage_is_recorded_like_claude(monkeypatch):
+    # 모델 비교용(main.py results/llm_usage): Claude·GPT와 같은 키, 입력은 캐시 제외, 생각 토큰은 출력에 포함
+    client, _ = _client(monkeypatch, [_response('{"a": 1}'), _response('{"b": 2}')])
+    assert client.complete_json("JSON", "x") == {"a": 1}
+    client.complete_json("JSON", "y")
+    totals = client.usage_totals
+    assert totals["calls"] == 2 and totals["input_tokens"] == 1400 and totals["cache_read_input_tokens"] == 600
+    assert totals["output_tokens"] == 400 and totals["reasoning_tokens"] == 100
+
+
+def test_safety_block_counts_as_refusal(monkeypatch):
+    client, _ = _client(monkeypatch, [_response(None, finish="FinishReason.SAFETY")])
+    with pytest.raises(Exception, match="refusal"):
+        client.complete_json("JSON", "x")
+    assert client.usage_totals["refusals"] == 1
 
 
 @pytest.mark.parametrize("code", [400, 401, 403])

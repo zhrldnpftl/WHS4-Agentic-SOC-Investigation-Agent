@@ -106,6 +106,17 @@ python eval/eval_tool.py summarize
 GPT 결과도 `results/llm_usage/`에 같은 키(입력·출력·캐시 읽기 토큰)로 기록돼 Claude와 한 표에서 비교됩니다.
 GPT 단가는 OpenAI 가격표 기준으로 따로 계산합니다.
 
+## Gemini 모델 비교
+
+모델 이름이 `gemini-*`이면 Gemini로 넘깁니다. `.env`에 `GEMINI_API_KEY`(Google AI Studio 키)가 필요합니다.
+무료 티어는 하루 요청 한도가 있고 503(과부하)이 잦아, 재시도로 시간이 더 걸리거나 사건이 미완료로 끝날 수 있습니다.
+
+```bash
+bash eval/run_eval.sh investigation gemini-3.5-flash-lite 1
+```
+
+Gemini도 토큰(입력·출력·캐시 읽기, 생각 토큰은 출력에 포함)과 안전 필터 차단(거절)이 같은 표에 기록됩니다.
+
 ## 지금 한계
 
 - 트리아지는 Claude만 지원합니다. GPT 비교는 트리아지 코드 수정이 필요합니다(가이드 문서 "추후 과제").

@@ -9,8 +9,8 @@
 # 결과: eval/runs/<단계>/<모델>/run<회차>/ — 같은 폴더가 있으면 덮어쓰지 않고 멈춘다.
 # 모델·로그 경로는 .env를 고치지 않고 실행할 때 환경변수로 넘긴다(.env보다 실행 시 준 값이 우선).
 # 비교 중에는 거절 시 다른 모델로 다시 보내지 않는다(*_CLAUDE_REFUSAL_FALLBACK_MODEL=none) — 거절도 그 모델의 결과다.
-# 모델 이름이 gpt-* 또는 o<숫자>*이면 OpenAI(GPT)로, 그 밖은 Anthropic(Claude)으로 넘긴다(PROVIDER로 덮어쓰기 가능).
-#   GPT는 .env의 OPENAI_API_KEY가 필요하다. 트리아지는 Claude만 지원한다.
+# 모델 이름이 gpt-* 또는 o<숫자>*이면 OpenAI(GPT), gemini-*이면 Gemini, 그 밖은 Anthropic(Claude)으로 넘긴다
+#   (PROVIDER로 덮어쓰기 가능). GPT는 .env의 OPENAI_API_KEY, Gemini는 GEMINI_API_KEY가 필요하다. 트리아지는 Claude만.
 # 환경변수: MAPPING_MODEL(investigation 단계의 매핑 모델, 기본 claude-haiku-4-5), SOURCE(mapping 단계 입력,
 #           예: investigation/claude-sonnet-5/run1), PROVIDER(anthropic|openai), PYTHON(기본 python)
 set -euo pipefail
@@ -63,10 +63,12 @@ finish_run() {
 
 need_model() { [ -n "$MODEL" ] || { echo "[eval] 모델 이름이 필요합니다" >&2; usage; }; }
 
-# 모델 이름으로 provider를 고른다: gpt-*·o<숫자>* → openai, 그 밖은 anthropic. PROVIDER 환경변수로 덮어쓸 수 있다.
+# 모델 이름으로 provider를 고른다: gpt-*·o<숫자>* → openai, gemini-* → gemini, 그 밖은 anthropic.
+# PROVIDER 환경변수로 덮어쓸 수 있다.
 provider_of() {
   if [ -n "${PROVIDER:-}" ]; then echo "$PROVIDER"
   elif [[ "$1" =~ ^(gpt|o[0-9]) ]]; then echo openai
+  elif [[ "$1" =~ ^gemini ]]; then echo gemini
   else echo anthropic; fi
 }
 
@@ -76,6 +78,8 @@ role_env() {  # $1=역할, $2=모델
   provider="$(provider_of "$model")"
   if [ "$provider" = openai ]; then
     echo "${role}_LLM_PROVIDER=openai ${role}_OPENAI_MODEL=$model"
+  elif [ "$provider" = gemini ]; then
+    echo "${role}_LLM_PROVIDER=gemini ${role}_GEMINI_MODEL=$model"
   else
     echo "${role}_LLM_PROVIDER=anthropic ${role}_CLAUDE_MODEL=$model ${role}_CLAUDE_REFUSAL_FALLBACK_MODEL=none"
   fi

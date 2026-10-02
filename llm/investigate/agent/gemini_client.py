@@ -43,6 +43,11 @@ def api_key_env_names(role: str = INVESTIGATION) -> tuple:
 API_KEY_ENV_NAMES = api_key_env_names(INVESTIGATION)
 
 
+def _new_usage_totals() -> Dict[str, int]:
+    return {"calls": 0, "input_tokens": 0, "output_tokens": 0, "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 0, "refusals": 0, "fallback_calls": 0, "reasoning_tokens": 0}
+
+
 class GeminiDecisionError(Exception):
     """Gemini 응답을 기대한 JSON 스키마로 파싱하지 못했을 때 발생."""
 
@@ -81,6 +86,8 @@ class GeminiClient:
         print(f"[Gemini] API 키: {self.api_key_source} 사용 ({role}, 모델 {self.model})")
         self.max_output_tokens = max_output_tokens
         self.temperature = temperature
+        # 이 클라이언트로 한 모든 호출의 토큰 합계 (ClaudeClient·GPTClient와 같은 키 — main.py 사용량 기록용)
+        self.usage_totals = _new_usage_totals()
 
     # [21] ← agent/loop.py [20] _safe_reason()에서 매 턴 호출
     def reason(
@@ -120,13 +127,34 @@ class GeminiClient:
             temperature=self.temperature,
         )
         response = self._generate_with_retry(user_prompt, config)
+        self._add_usage(getattr(response, "usage_metadata", None))
         text = response.text
         if not text:
+            finish = str(getattr((getattr(response, "candidates", None) or [None])[0], "finish_reason", "") or "")
+            if "SAFETY" in finish.upper() or "PROHIBITED" in finish.upper():
+                # 안전 필터 차단 — "refusal"은 eval/eval_tool.py가 거절 횟수를 세는 표시(Claude·GPT와 같음)
+                self.usage_totals["refusals"] += 1
+                raise GeminiDecisionError(f"Gemini가 응답을 거절했습니다(refusal, finish_reason={finish})")
             raise GeminiDecisionError(
                 f"Gemini가 빈 응답을 반환했습니다. (finish_reason 등을 확인하십시오)\n원본 응답: {response}"
             )
         # 응답 형식 보정(trailing comma, markdown 리스트로 깨진 키 등)은 공용 파서가 한다
         return parse_llm_json(text, GeminiDecisionError, label="Gemini")
+
+    def _add_usage(self, usage: Any) -> None:
+        """usage_metadata를 Claude와 같은 키로 누적한다. input_tokens는 캐시에서 읽은 토큰을 뺀 값이고,
+        생각(thoughts) 토큰은 출력 요금이라 output_tokens에 더한다(reasoning_tokens에도 따로 기록)."""
+        totals = self.__dict__.setdefault("usage_totals", _new_usage_totals())
+        totals["calls"] += 1
+        if usage is None:
+            return
+        prompt = int(getattr(usage, "prompt_token_count", 0) or 0)
+        cached = int(getattr(usage, "cached_content_token_count", 0) or 0)
+        thoughts = int(getattr(usage, "thoughts_token_count", 0) or 0)
+        totals["input_tokens"] += prompt - cached
+        totals["cache_read_input_tokens"] += cached
+        totals["output_tokens"] += int(getattr(usage, "candidates_token_count", 0) or 0) + thoughts
+        totals["reasoning_tokens"] += thoughts
 
     # 503(서버 과부하)/429(분당 한도)는 일시적인 오류인데, 예전엔 한 번만 나도
     # main.py 전체가 예외로 끝났다(seed 생성 단계에서 연속 발생 확인). 이 코드(와 다른 5xx)만
