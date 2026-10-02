@@ -76,7 +76,7 @@ INVESTIGATION_CLAUDE_MODEL=<고성능 모델>
 | `<접두어>GEMINI_API_KEY`, `<접두어>GEMINI_MODEL` | Gemini를 쓸 때 | `GEMINI_API_KEY`, `gemini-3.5-flash-lite` | X | O |
 | `<접두어>OPENAI_API_KEY` | GPT를 쓸 때 그 단계 전용 키 (`<접두어>LLM_PROVIDER=openai`) | 공용 `OPENAI_API_KEY` | X | O |
 | `<접두어>OPENAI_MODEL` | GPT 모델 — **기본값 없음, 반드시 지정** | (없으면 설정 오류) | X | O |
-| `<접두어>OPENAI_REASONING_EFFORT` | GPT 추론 강도 `minimal`~`high` | 보내지 않음 | X | O |
+| `<접두어>OPENAI_REASONING_EFFORT` | GPT 추론 강도 `none`~`xhigh` (이전 gpt-5는 `minimal`) | 보내지 않음(모델 기본값 — gpt-5.5 `medium`, gpt-5.4-mini `none`) | X | O |
 
 - **API 키만 공용 키로 넘어갑니다.** 모델이나 provider는 다른 단계 값을 절대 빌려 오지 않습니다.
 - **역할 전용 키는 선택입니다.** 넣으면 Anthropic 콘솔에서 키마다 사용량이 따로 보여 단계별 비용을 비교하기 쉽습니다.

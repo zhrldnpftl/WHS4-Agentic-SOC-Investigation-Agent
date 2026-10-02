@@ -6,8 +6,9 @@
   ATT&CK 매핑(MAPPING) 어느 역할에도 그대로 쓴다. 2026-10-02 LLM 모델 비교(Claude vs GPT)용으로 추가했다.
   - JSON 모드(response_format=json_object)로 JSON 객체만 받는다. 조사·매핑 프롬프트 모두 "JSON 객체 하나만"을
     요구하므로 이 모드의 조건(프롬프트에 JSON이라는 말)이 맞는다. 그래도 응답 해석은 공용 parse_llm_json이 한다.
-  - temperature는 보내지 않는다 — 추론(reasoning) 계열 모델은 기본값 외 값을 거부한다. 추론 강도는 선택
-    <역할>_OPENAI_REASONING_EFFORT(보낼 때만 reasoning_effort로 전달).
+  - temperature는 보내지 않는다 — 추론(reasoning) 계열 모델은 추론을 켜면 기본값 외 값을 거부한다. 추론 강도는 선택
+    <역할>_OPENAI_REASONING_EFFORT(보낼 때만 reasoning_effort로 전달). 안 보내면 모델 기본값이라 모델마다 다르다
+    (OpenAI 공식 모델 페이지 기준 gpt-5.5 medium, gpt-5.4-mini none — 2026-10-02 확인). 추론 토큰은 출력 요금이다.
   - 출력 한도 16000(max_completion_tokens) — 추론 토큰도 이 한도에 들어간다. 잘리면(finish_reason=length) 해석 실패.
   - 일시 오류(429 요청 한도, 5xx, 연결 끊김·시간 초과)는 SDK가 재시도하고, 그래도 실패하면 LLMUnavailableError로
     올린다(조사 루프가 그 사건만 조사 미완료로 처리). 단 429라도 잔액 부족(insufficient_quota)은 기다려도 풀리지
@@ -41,7 +42,8 @@ from .llm_json import parse_llm_json
 from .prompts import build_system_prompt, build_user_prompt
 from .settings import INVESTIGATION, role_setting
 
-REASONING_EFFORTS = ("minimal", "low", "medium", "high")
+# gpt-5.4·5.5 계열은 none~xhigh(기본값은 모델마다 다름: gpt-5.5 medium, gpt-5.4-mini none), 이전 gpt-5는 minimal
+REASONING_EFFORTS = ("none", "minimal", "low", "medium", "high", "xhigh")
 # SDK 재시도 뒤에도 이 상태 코드면 일시 오류로 본다(429 한도, 5xx, 408 시간 초과)
 TRANSIENT_STATUS = frozenset({408, 429, 500, 502, 503, 504})
 

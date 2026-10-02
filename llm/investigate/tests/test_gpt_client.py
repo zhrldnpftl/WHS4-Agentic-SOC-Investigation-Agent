@@ -134,6 +134,11 @@ def test_complete_json_for_mapping_and_reasoning_effort(monkeypatch):
     assert client.complete_json("JSON 객체 하나만 반환", "데이터") == {"technique_id": "T1505.003"}
     call = created["completions"].calls[0]
     assert call["model"] == "gpt-mini-test" and call["reasoning_effort"] == "low"
+    # gpt-5.4·5.5 계열 값(none·xhigh)도 받고, 모르는 값은 설정 오류
+    for effort in ("none", "xhigh"):
+        assert GPTClient(api_key="k", model="m", reasoning_effort=effort).reasoning_effort == effort
+    with pytest.raises(ValueError, match="REASONING_EFFORT"):
+        GPTClient(api_key="k", model="m", reasoning_effort="turbo")
 
 
 @pytest.mark.parametrize("reply,match", [
