@@ -153,6 +153,52 @@ def test_main_saves_investigation_then_maps_each_incident(tmp_path, monkeypatch,
         "INC-MAIN-B_attack_mapping.json", "INC-MAIN-B_final_report.json"]
 
 
+def test_main_records_usage_per_incident_and_role(tmp_path, monkeypatch, capsys):
+    # 모델 비교용: 사건마다 조사·매핑 토큰을 따로 계산해 results/llm_usage/에 남긴다(조사 결과 JSON은 그대로)
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(main, "load_incidents", lambda path: [{"incident_id": "A"}, {"incident_id": "B"}])
+
+    class FakeClient:
+        def __init__(self, model):
+            self.model = model
+            self.usage_totals = {"calls": 0, "input_tokens": 0, "output_tokens": 0, "refusals": 0}
+
+        def spend(self, tokens):
+            self.usage_totals["calls"] += 1
+            self.usage_totals["input_tokens"] += tokens
+            self.usage_totals["output_tokens"] += tokens // 10
+
+    clients = {"INVESTIGATION": FakeClient("inv-model"), "MAPPING": FakeClient("map-model")}
+    monkeypatch.setattr(main, "build_llm_client", lambda role="INVESTIGATION": clients[role])
+
+    def mapping_spy(path, *, out_dir, llm_client):
+        llm_client.spend(100)
+        Path(out_dir).mkdir(parents=True, exist_ok=True)
+        return {"mapping_status": "mapped", "techniques": [], "kill_chain": []}
+
+    def pipeline(incidents, **kwargs):
+        for tokens, incident_id in ((1000, "INC-A"), (3000, "INC-B")):
+            kwargs["llm_client"].spend(tokens)
+            kwargs["on_result"](investigation(incident_id=incident_id))
+        return []
+
+    monkeypatch.setattr(main, "process_file", mapping_spy)
+    monkeypatch.setattr(main, "run_investigation_pipeline", pipeline)
+    main.main(["incidents.jsonl"])
+
+    [usage_file] = (tmp_path / "results" / "llm_usage").iterdir()
+    usage = json.loads(usage_file.read_text(encoding="utf-8"))
+    assert usage["investigation_model"] == "inv-model" and usage["mapping_model"] == "map-model"
+    assert [r["incident_id"] for r in usage["incidents"]] == ["INC-A", "INC-B"]
+    assert [r["investigation_usage"]["input_tokens"] for r in usage["incidents"]] == [1000, 3000]
+    assert [r["mapping_usage"]["input_tokens"] for r in usage["incidents"]] == [100, 100]
+    assert usage["incidents"][0]["mapping_status"] == "mapped" and usage["incidents"][0]["verdict"] == "THREAT_CONFIRMED"
+    assert usage["totals"]["investigation"]["input_tokens"] == 4000 and usage["totals"]["mapping"]["calls"] == 2
+    out = capsys.readouterr().out
+    assert "[agent] 토큰 — 조사 FakeClient(inv-model): 호출 2회, 입력 4000" in out
+    assert "[agent] 토큰 — 매핑 FakeClient(map-model): 호출 2회, 입력 200" in out
+
+
 def test_mapping_client_failure_does_not_stop_investigation(tmp_path, monkeypatch, capsys):
     # 매핑 LLM 설정이 잘못돼도(예: MAPPING_LLM_PROVIDER 오타) 조사는 계속하고, 매핑 단계가 다시 시도한다
     monkeypatch.chdir(tmp_path)

@@ -146,6 +146,11 @@ def _default_call(digests):
         system=_SYSTEM,
         messages=[{"role": "user", "content": json.dumps(digests, ensure_ascii=False)}],
     )
+    usage = getattr(msg, "usage", None)
+    if usage is not None:   # 모델 비교용 토큰 기록(값은 정수뿐, 키·내용 없음)
+        print("[triage] 토큰 입력 %d·출력 %d (모델 %s, stop_reason=%s)"
+              % (getattr(usage, "input_tokens", 0) or 0, getattr(usage, "output_tokens", 0) or 0,
+                 _model(), getattr(msg, "stop_reason", None)))
     text = "".join(b.text for b in msg.content if b.type == "text")
     return _parse(text)
 
