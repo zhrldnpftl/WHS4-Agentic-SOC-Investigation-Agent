@@ -65,10 +65,26 @@ def _error_code(exc: Exception) -> Optional[str]:
     return None
 
 
+def _is_out_of_credits(exc: Exception) -> bool:
+    """잔액 부족(429지만 재시도해도 풀리지 않음). code·type 어느 쪽에 오는지 응답마다 달라 둘 다 본다.
+
+    2026-10-03 EC2: 잔액이 0이 되자 code가 아니라 type에 insufficient_quota가 오고
+    메시지가 'You have no credits remaining'이어서 일시 오류로 잘못 분류됐다(남은 사건이 모두 미완료).
+    """
+    if _error_code(exc) == "insufficient_quota":
+        return True
+    body = getattr(exc, "body", None)
+    inner = body.get("error") if isinstance(body, dict) and isinstance(body.get("error"), dict) else body
+    if isinstance(inner, dict) and inner.get("type") == "insufficient_quota":
+        return True
+    message = str(exc).lower()
+    return "insufficient_quota" in message or "no credits remaining" in message
+
+
 def _is_transient(exc: Exception) -> bool:
     import openai
 
-    if _error_code(exc) == "insufficient_quota":
+    if _is_out_of_credits(exc):
         return False   # 잔액 부족 — 재시도해도 풀리지 않는 설정 문제
     connection_error = getattr(openai, "APIConnectionError", None)  # APITimeoutError 포함
     status_error = getattr(openai, "APIStatusError", None)

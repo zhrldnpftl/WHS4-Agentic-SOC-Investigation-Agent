@@ -34,10 +34,11 @@ def isolated_env(monkeypatch):
 
 
 class FakeStatusError(Exception):
-    def __init__(self, status_code: int, code: str = None) -> None:
-        super().__init__(f"status {status_code}")
+    def __init__(self, status_code: int, code: str = None, body: Any = None, message: str = None) -> None:
+        super().__init__(message or f"status {status_code}")
         self.status_code = status_code
         self.code = code
+        self.body = body
 
 
 class FakeConnectionError(Exception):
@@ -161,7 +162,11 @@ def test_transient_errors_and_quota(monkeypatch):
         with pytest.raises(LLMUnavailableError):
             GPTClient(api_key="k", model="m").complete_json("JSON", "x")
     # 잔액 부족은 기다려도 안 풀린다 — 그대로 올려 실행을 멈춘다(사건마다 미완료로 쌓이지 않게)
-    for error in (FakeStatusError(429, code="insufficient_quota"), FakeStatusError(401)):
+    # 2026-10-03 EC2: 잔액 0일 때는 code 없이 type에만 insufficient_quota, 메시지는 'no credits remaining'
+    no_credits = FakeStatusError(
+        429, body={"message": "You have no credits remaining.", "type": "insufficient_quota", "code": None},
+        message="Error code: 429 - {'error': {'message': 'You have no credits remaining.'}}")
+    for error in (FakeStatusError(429, code="insufficient_quota"), no_credits, FakeStatusError(401)):
         _install_fake_openai(monkeypatch, [error])
         with pytest.raises(FakeStatusError):
             GPTClient(api_key="k", model="m").complete_json("JSON", "x")
