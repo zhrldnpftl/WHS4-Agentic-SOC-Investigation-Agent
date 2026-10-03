@@ -29,7 +29,9 @@
 모델 설정 — 접두어 없는 옛 이름(CLAUDE_MODEL 등)은 무시하고 이름만 안내한다.
   <역할>_CLAUDE_MODEL — 없으면 역할별 기본값: 조사 claude-sonnet-5(고성능), 매핑 claude-haiku-4-5(경량).
     매핑 줄을 빼먹어도 비싼 모델로 돌지 않게 기본값을 역할마다 둔다.
-  <역할>_CLAUDE_EFFORT(low|medium|high|xhigh|max) — 없으면 보내지 않음(API 기본값).
+  <역할>_CLAUDE_EFFORT(low|medium|high|xhigh|max) — 없으면 보내지 않음(API 기본값). Haiku 4.5는 받지 않는다.
+  <역할>_CLAUDE_THINKING_BUDGET(1024 이상, 출력 한도 미만) — Haiku 4.5에서 생각을 켤 때 쓴다(thinking budget_tokens).
+    Sonnet 5·5.5는 budget_tokens를 거부하므로 effort를 쓴다. 없으면 보내지 않음(생각 안 함).
   <역할>_CLAUDE_REFUSAL_FALLBACK_MODEL — 안전 필터 거절(stop_reason=refusal) 시 같은 요청을 다시 보낼
   모델. 없거나 비우면 claude-sonnet-4-6. 재요청을 끄는 none/off는 실험용이며 운영에서는 쓰지 않는다(켜면
   경고 출력). 대체 호출은 결과 notes에 남는다.
@@ -98,6 +100,7 @@ class ClaudeClient:
         max_tokens: int = 16000,
         effort: Optional[str] = None,
         role: str = INVESTIGATION,
+        thinking_budget: Optional[int] = None,
     ) -> None:
         # anthropic 패키지는 실제 API 호출 시에만 필요하므로 지연 import한다.
         from anthropic import Anthropic
@@ -124,6 +127,14 @@ class ClaudeClient:
         if self.effort is not None and self.effort not in EFFORT_LEVELS:
             raise ValueError(
                 f"{role}_CLAUDE_EFFORT는 {', '.join(EFFORT_LEVELS)} 중 하나여야 합니다: {self.effort}")
+        # 생각 예산(thinking budget_tokens) — effort를 받지 않는 Haiku 4.5에서 생각을 켜는 방법(1차 탐지 트리아지 비교의
+        # haiku45-think와 같은 방식). Sonnet 5·5.5는 budget_tokens를 거부하므로 effort를 쓴다. 비우면 보내지 않는다.
+        budget = (thinking_budget if thinking_budget is not None
+                  else (role_setting(role, "CLAUDE_THINKING_BUDGET") or "").strip())
+        self.thinking_budget = int(budget) if str(budget).strip() else None
+        if self.thinking_budget is not None and not 1024 <= self.thinking_budget < self.max_tokens:
+            raise ValueError(f"{role}_CLAUDE_THINKING_BUDGET는 1024 이상, 출력 한도({self.max_tokens}) 미만이어야 "
+                             f"합니다: {self.thinking_budget}")
         # 안전 필터 거절(refusal) 시 같은 요청을 다시 보낼 모델. 비우면 기본 대체 모델(재요청을 끄지 않는다).
         # none/off는 실험용으로만 남긴 끄기 — 운영에서는 쓰지 않는다(켜져 있지 않음을 알린다).
         fallback = role_setting(role, "CLAUDE_REFUSAL_FALLBACK_MODEL") or DEFAULT_REFUSAL_FALLBACK_MODEL
@@ -166,7 +177,8 @@ class ClaudeClient:
     def complete_json(self, system_prompt: str, user_prompt: str) -> Dict[str, Any]:
         """범용 호출: 어떤 system/user 프롬프트든 받아서 JSON으로 파싱해 돌려준다."""
         notes = []
-        response = self._create(self.model, system_prompt, user_prompt, effort=self.effort)
+        response = self._create(self.model, system_prompt, user_prompt, effort=self.effort,
+                                thinking_budget=self.thinking_budget)
         if getattr(response, "stop_reason", None) == "refusal":
             # 안전 분류기가 공격 로그(웹셸 명령 등)를 사이버 공격 요청으로 오인해 거절할 수 있다(2026-09-29
             # 재현성 측정: 웹셸 시나리오 4회 중 1회 연속 2번 거절 → 폴백 판정). sonnet-5는 서버 측 fallbacks
@@ -201,8 +213,12 @@ class ClaudeClient:
             decision["investigation_notes"] = list(decision.get("investigation_notes") or []) + notes
         return decision
 
-    def _create(self, model: str, system_prompt: str, user_prompt: str, effort: Optional[str]) -> Any:
+    def _create(self, model: str, system_prompt: str, user_prompt: str, effort: Optional[str],
+                thinking_budget: Optional[int] = None) -> Any:
+        # effort·생각 예산은 대체 모델 재요청에는 보내지 않는다(모델마다 지원 범위가 달라서)
         extra: Dict[str, Any] = {"output_config": {"effort": effort}} if effort else {}
+        if thinking_budget:
+            extra["thinking"] = {"type": "enabled", "budget_tokens": thinking_budget}
         try:
             response = self._client.messages.create(
                 model=model,

@@ -1,0 +1,37 @@
+# LLM 모델·추론 강도 비교 설정 — python eval/run_matrix.py <단계> 가 위에서부터 차례로 run_eval.sh에 넘긴다.
+# 트리아지 팀원 비교(models.yaml)와 같은 8개 설정을 쓴다(출력 한도는 클라이언트 기본 16000으로 같음).
+#
+#   name             결과 폴더·요약 표 이름 (eval/runs/<단계>/<name>/run<회차>)
+#   model            모델 이름 (gpt-*·o<숫자>* → OpenAI, gemini-* → Gemini, 그 밖 → Claude)
+#   effort           Claude는 low|medium|high|xhigh|max, GPT는 none|minimal|low|medium|high|xhigh (비우면 모델 기본값)
+#   thinking_budget  Claude 생각 예산 토큰(1024 이상 16000 미만) — effort를 받지 않는 Haiku 4.5에서 생각을 켤 때
+#
+# 설정을 빼고 돌리려면 --only 이름,이름 을 쓴다(이 파일은 그대로 둔다).
+
+settings:
+  - name: sonnet5-low
+    model: claude-sonnet-5
+    effort: low
+  - name: sonnet5-high
+    model: claude-sonnet-5
+    effort: high
+
+  - name: gpt54-none
+    model: gpt-5.4-2026-03-05
+    effort: none
+  - name: gpt54-high
+    model: gpt-5.4-2026-03-05
+    effort: high
+
+  - name: haiku45-off
+    model: claude-haiku-4-5-20251001
+  - name: haiku45-think
+    model: claude-haiku-4-5-20251001
+    thinking_budget: 4000
+
+  - name: gpt54mini-none
+    model: gpt-5.4-mini-2026-03-17
+    effort: none
+  - name: gpt54mini-high
+    model: gpt-5.4-mini-2026-03-17
+    effort: high

@@ -16,7 +16,10 @@
 #           EFFORT(비교할 모델의 추론 강도 low|medium|high|xhigh|max — Claude는 <역할>_CLAUDE_EFFORT, GPT는
 #           <역할>_OPENAI_REASONING_EFFORT로 넘김. 결과 폴더는 <모델>@<effort>로 나뉜다. 비우면 모델 기본값),
 #           MAPPING_EFFORT(investigation 단계의 고정 매핑 모델 effort). .env에 적힌 effort는 비교에 끼어들지 않는다.
+#           THINKING_BUDGET(Claude 생각 예산 토큰 — effort를 받지 않는 Haiku 4.5에서 생각을 켤 때, 결과 폴더 @think<N>),
+#           NAME(결과 폴더·요약 표에 쓸 설정 이름 — 주면 <모델>@<effort> 대신 이 이름. run_matrix.py가 yaml의 name을 넘김)
 #   예: EFFORT=low bash eval/run_eval.sh investigation claude-sonnet-5-5 1
+#   여러 설정을 한 번에: python eval/run_matrix.py <단계> (eval/models.yaml)
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -40,7 +43,9 @@ DETECT_ARGS=(--apache "$APACHE_LOG_PATH" --auth "$AUTH_LOG_PATH" --network "$SUR
              --audit "$AUDIT_LOG_PATH" --since-minutes "$SINCE_MINUTES" --now "$SNAPSHOT_AT")
 
 EFFORT="${EFFORT:-}"
-LABEL="$MODEL${EFFORT:+@$EFFORT}"   # 결과 폴더·요약 표의 모델 이름 (effort를 주면 <모델>@<effort>)
+THINKING_BUDGET="${THINKING_BUDGET:-}"
+# 결과 폴더·요약 표의 모델 이름: NAME이 있으면 그것, 없으면 <모델>[@<effort>][@think<N>]
+LABEL="${NAME:-$MODEL${EFFORT:+@$EFFORT}${THINKING_BUDGET:+@think$THINKING_BUDGET}}"
 
 start_run() {  # 실행 폴더 만들기 + 메타 정보
   RUN_DIR="$EVAL/runs/$STAGE/$LABEL/run$RUN"
@@ -55,6 +60,7 @@ STAGE=$STAGE
 MODEL=$LABEL
 BASE_MODEL=$MODEL
 EFFORT=$EFFORT
+THINKING_BUDGET=$THINKING_BUDGET
 RUN=$RUN
 MAPPING_MODEL=${MAPPING_MODEL:-}
 MAPPING_EFFORT=${MAPPING_EFFORT:-}
@@ -84,16 +90,17 @@ provider_of() {
 
 # 역할(INVESTIGATION/MAPPING)과 모델로 넘길 환경변수 목록을 만든다. 비교 중에는 거절 재요청을 끈다(Claude만 해당).
 # effort는 비어 있어도 항상 넘긴다(빈 값 = 모델 기본값) — .env에 적힌 effort가 비교 실행에 섞이지 않게.
-role_env() {  # $1=역할, $2=모델, $3=effort(없으면 빈 값)
-  local role="$1" model="$2" effort="${3:-}" provider
+role_env() {  # $1=역할, $2=모델, $3=effort(없으면 빈 값), $4=생각 예산(Claude만, 없으면 빈 값)
+  local role="$1" model="$2" effort="${3:-}" budget="${4:-}" provider
   provider="$(provider_of "$model")"
   if [ "$provider" = openai ]; then
+    [ -z "$budget" ] || echo "[eval] GPT는 생각 예산을 쓰지 않아 무시합니다(EFFORT 사용): $budget" >&2
     echo "${role}_LLM_PROVIDER=openai ${role}_OPENAI_MODEL=$model ${role}_OPENAI_REASONING_EFFORT=$effort"
   elif [ "$provider" = gemini ]; then
-    [ -z "$effort" ] || echo "[eval] Gemini는 effort를 지원하지 않아 무시합니다: $effort" >&2
+    [ -z "$effort$budget" ] || echo "[eval] Gemini는 effort·생각 예산을 지원하지 않아 무시합니다" >&2
     echo "${role}_LLM_PROVIDER=gemini ${role}_GEMINI_MODEL=$model"
   else
-    echo "${role}_LLM_PROVIDER=anthropic ${role}_CLAUDE_MODEL=$model ${role}_CLAUDE_REFUSAL_FALLBACK_MODEL=none ${role}_CLAUDE_EFFORT=$effort"
+    echo "${role}_LLM_PROVIDER=anthropic ${role}_CLAUDE_MODEL=$model ${role}_CLAUDE_REFUSAL_FALLBACK_MODEL=none ${role}_CLAUDE_EFFORT=$effort ${role}_CLAUDE_THINKING_BUDGET=$budget"
   fi
 }
 
@@ -109,7 +116,7 @@ case "$STAGE" in
   triage)
     need_model
     [ "$(provider_of "$MODEL")" = anthropic ] || { echo "[eval] 트리아지는 Claude 모델만 지원합니다: $MODEL" >&2; exit 1; }
-    [ -z "$EFFORT" ] || { echo "[eval] 트리아지(llm_review.py)는 아직 effort 설정이 없습니다" >&2; exit 1; }
+    [ -z "$EFFORT$THINKING_BUDGET" ] || { echo "[eval] 트리아지(llm_review.py)는 아직 effort·생각 예산 설정이 없습니다" >&2; exit 1; }
     start_run
     TRIAGE_CLAUDE_MODEL="$MODEL" \
       "$PYTHON" -u "$ROOT/run_pipeline.py" "${DETECT_ARGS[@]}" --show 0 \
@@ -124,7 +131,7 @@ case "$STAGE" in
     # main.py는 실행 폴더 아래 results/에 저장하므로 실행 폴더에서 돌린다
     # shellcheck disable=SC2046  # role_env는 공백으로 나뉜 NAME=값 목록(값에 공백 없음)
     (cd "$RUN_DIR" && \
-      env $(role_env INVESTIGATION "$MODEL" "$EFFORT") $(role_env MAPPING "$MAPPING_MODEL" "${MAPPING_EFFORT:-}") \
+      env $(role_env INVESTIGATION "$MODEL" "$EFFORT" "$THINKING_BUDGET") $(role_env MAPPING "$MAPPING_MODEL" "${MAPPING_EFFORT:-}") \
       "$PYTHON" -u "$ROOT/llm/investigate/main.py" "$EVAL/incidents/eval_set.jsonl" 2>&1 | tee run.log)
     finish_run
     ;;
@@ -137,7 +144,7 @@ case "$STAGE" in
     # 매핑 CLI는 llm/investigate에서 모듈로 실행한다. 입력·출력은 절대경로
     # shellcheck disable=SC2046
     (cd "$ROOT/llm/investigate" && \
-      env $(role_env MAPPING "$MODEL" "$EFFORT") \
+      env $(role_env MAPPING "$MODEL" "$EFFORT" "$THINKING_BUDGET") \
       "$PYTHON" -u -m attack_mapping.cli --all-in-dir "$INPUT" --out-dir "$RUN_DIR/attack_mapping" \
       2>&1 | tee "$RUN_DIR/run.log") || true   # 일부 사건 매핑 오류면 CLI가 1로 끝난다 — 요약에서 본다
     finish_run

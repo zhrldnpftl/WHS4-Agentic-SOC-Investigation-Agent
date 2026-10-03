@@ -28,7 +28,7 @@ def isolated_env(monkeypatch):
     # 실행하는 셸에 모델 설정·API 키가 있어도 기본값을 확인할 수 있게 비운다(옛 이름·새 이름 모두)
     for name in ("CLAUDE_MODEL", "CLAUDE_EFFORT", "CLAUDE_REFUSAL_FALLBACK_MODEL",
                  "INVESTIGATION_CLAUDE_MODEL", "INVESTIGATION_CLAUDE_EFFORT",
-                 "INVESTIGATION_CLAUDE_REFUSAL_FALLBACK_MODEL",
+                 "INVESTIGATION_CLAUDE_REFUSAL_FALLBACK_MODEL", "INVESTIGATION_CLAUDE_THINKING_BUDGET",
                  "INVESTIGATION_ANTHROPIC_API_KEY", "ANTHROPIC_API_KEY"):
         monkeypatch.delenv(name, raising=False)
     # 옛 이름 안내는 프로세스당 한 번만 출력하므로 테스트마다 초기화한다
@@ -273,6 +273,26 @@ def test_effort_from_env_goes_to_output_config(monkeypatch):
         ClaudeClient(api_key="k")
 
 
+def test_thinking_budget_for_haiku(monkeypatch):
+    # Haiku 4.5는 effort를 받지 않아 생각 예산(budget_tokens)으로 생각을 켠다(트리아지 비교의 haiku45-think와 같은 방식)
+    created = _install_fake_anthropic(monkeypatch, [REFUSAL, _decision()])
+    monkeypatch.setenv("INVESTIGATION_CLAUDE_MODEL", "claude-haiku-4-5")
+    monkeypatch.setenv("INVESTIGATION_CLAUDE_THINKING_BUDGET", "4000")
+    client = ClaudeClient(api_key="k")
+    client.complete_json("sys", "user")
+    first, second = created["messages"].calls
+    assert first["thinking"] == {"type": "enabled", "budget_tokens": 4000} and "output_config" not in first
+    assert "thinking" not in second   # 거절 시 대체 모델 재요청에는 보내지 않는다
+    for bad in ("512", "16000"):      # 1024 미만, 출력 한도 이상
+        monkeypatch.setenv("INVESTIGATION_CLAUDE_THINKING_BUDGET", bad)
+        with pytest.raises(ValueError, match="THINKING_BUDGET"):
+            ClaudeClient(api_key="k")
+    monkeypatch.setenv("INVESTIGATION_CLAUDE_THINKING_BUDGET", "")
+    created = _install_fake_anthropic(monkeypatch, [{"text": "{}"}])
+    ClaudeClient(api_key="k").complete_json("sys", "user")
+    assert "thinking" not in created["messages"].calls[0]   # 비우면 생각 안 함(지금까지와 같음)
+
+
 def test_request_arguments_are_accepted_by_installed_sdk(monkeypatch):
     # 가짜 클라이언트는 어떤 인자든 받아서, SDK가 삭제한 인자(temperature)를 보내도 통과했다.
     # 설치된 실제 anthropic의 messages.create() 시그니처와 대조한다.
@@ -283,6 +303,7 @@ def test_request_arguments_are_accepted_by_installed_sdk(monkeypatch):
 
     accepted = set(inspect.signature(Messages.create).parameters)
     monkeypatch.setenv("INVESTIGATION_CLAUDE_EFFORT", "high")
+    monkeypatch.setenv("INVESTIGATION_CLAUDE_THINKING_BUDGET", "4000")
     created = _install_fake_anthropic(monkeypatch, [{"text": "{}"}])
     ClaudeClient(api_key="k").complete_json("sys", "user")
     sent = set(created["messages"].calls[0])

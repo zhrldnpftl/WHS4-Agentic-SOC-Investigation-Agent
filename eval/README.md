@@ -87,11 +87,31 @@ eval/runs/<단계>/<모델>/run<회차>/
 같은 모델을 effort만 바꿔 비교할 때는 앞에 `EFFORT=`를 붙입니다. 결과 폴더와 요약 표의 모델 이름이 `<모델>@<effort>`로
 나뉘어 기존 결과(모델 기본값)와 섞이지 않습니다. Claude는 `<역할>_CLAUDE_EFFORT`, GPT는 `<역할>_OPENAI_REASONING_EFFORT`로
 넘기고, `.env`에 적힌 effort는 비교 실행에 끼어들지 않습니다. haiku-4-5와 Gemini는 effort를 지원하지 않습니다.
+GPT는 `none`(추론 끔)도 됩니다.
 
 ```bash
 EFFORT=low bash eval/run_eval.sh investigation claude-sonnet-5-5 1                                  # 조사 에이전트
 EFFORT=low SOURCE=investigation/claude-sonnet-5-5/run1 bash eval/run_eval.sh mapping claude-sonnet-5-5 1   # 매핑
 ```
+
+Haiku 4.5는 effort 대신 생각 예산(토큰)으로 생각을 켭니다: `THINKING_BUDGET=4000 bash eval/run_eval.sh ...`
+(1024 이상 16000 미만, 결과 폴더 `<모델>@think4000`).
+
+### 여러 설정 한 번에 (models.yaml)
+
+[models.yaml](models.yaml)에 트리아지 팀원 비교와 같은 8개 설정(sonnet5 low/high, gpt-5.4 none/high,
+haiku45 off/think, gpt-5.4-mini none/high)이 있습니다. `run_matrix.py`가 위에서부터 차례로 `run_eval.sh`를 부르고,
+결과 폴더는 yaml의 `name`(예: `eval/runs/mapping/sonnet5-low/run1`)입니다.
+
+```bash
+python eval/run_matrix.py mapping --source investigation/claude-sonnet-5-5/run1 --dry-run   # 목록만 보기
+python eval/run_matrix.py mapping --source investigation/claude-sonnet-5-5/run1
+python eval/run_matrix.py investigation --only sonnet5-low,haiku45-off,gpt54mini-none     # 일부만
+python eval/eval_tool.py summarize
+```
+
+이미 있는 결과 폴더는 건너뛰므로, 중간에 멈추면 반쯤 찬 폴더만 지우고 같은 명령을 다시 실행하면 됩니다.
+한 설정이 실패해도 다음 설정으로 넘어가고 끝에 실패 목록을 보여 줍니다.
 
 ## GPT 모델 비교
 
