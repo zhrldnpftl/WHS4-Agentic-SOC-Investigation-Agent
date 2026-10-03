@@ -82,6 +82,17 @@ eval/runs/<단계>/<모델>/run<회차>/
 - 비용은 토큰 수에 모델별 단가를 곱해 계산합니다(단가는 Anthropic 가격표 기준).
 - 매핑 단계 단독 실행(6번)은 매핑 CLI가 토큰을 기록하지 않아, 비용은 Anthropic 콘솔 사용량으로 봅니다.
 
+## 추론 강도(effort) 비교
+
+같은 모델을 effort만 바꿔 비교할 때는 앞에 `EFFORT=`를 붙입니다. 결과 폴더와 요약 표의 모델 이름이 `<모델>@<effort>`로
+나뉘어 기존 결과(모델 기본값)와 섞이지 않습니다. Claude는 `<역할>_CLAUDE_EFFORT`, GPT는 `<역할>_OPENAI_REASONING_EFFORT`로
+넘기고, `.env`에 적힌 effort는 비교 실행에 끼어들지 않습니다. haiku-4-5와 Gemini는 effort를 지원하지 않습니다.
+
+```bash
+EFFORT=low bash eval/run_eval.sh investigation claude-sonnet-5-5 1                                  # 조사 에이전트
+EFFORT=low SOURCE=investigation/claude-sonnet-5-5/run1 bash eval/run_eval.sh mapping claude-sonnet-5-5 1   # 매핑
+```
+
 ## GPT 모델 비교
 
 `run_eval.sh`는 모델 이름이 `gpt-*` 또는 `o<숫자>*`이면 OpenAI(GPT)로, 그 밖은 Claude로 넘깁니다

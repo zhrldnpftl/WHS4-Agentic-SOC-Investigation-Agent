@@ -13,6 +13,10 @@
 #   (PROVIDER로 덮어쓰기 가능). GPT는 .env의 OPENAI_API_KEY, Gemini는 GEMINI_API_KEY가 필요하다. 트리아지는 Claude만.
 # 환경변수: MAPPING_MODEL(investigation 단계의 매핑 모델, 기본 claude-haiku-4-5), SOURCE(mapping 단계 입력,
 #           예: investigation/claude-sonnet-5/run1), PROVIDER(anthropic|openai), PYTHON(기본 python)
+#           EFFORT(비교할 모델의 추론 강도 low|medium|high|xhigh|max — Claude는 <역할>_CLAUDE_EFFORT, GPT는
+#           <역할>_OPENAI_REASONING_EFFORT로 넘김. 결과 폴더는 <모델>@<effort>로 나뉜다. 비우면 모델 기본값),
+#           MAPPING_EFFORT(investigation 단계의 고정 매핑 모델 effort). .env에 적힌 effort는 비교에 끼어들지 않는다.
+#   예: EFFORT=low bash eval/run_eval.sh investigation claude-sonnet-5-5 1
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -35,8 +39,11 @@ SINCE_MINUTES=$((SNAPSHOT_DAYS * 1440))
 DETECT_ARGS=(--apache "$APACHE_LOG_PATH" --auth "$AUTH_LOG_PATH" --network "$SURICATA_LOG_PATH"
              --audit "$AUDIT_LOG_PATH" --since-minutes "$SINCE_MINUTES" --now "$SNAPSHOT_AT")
 
+EFFORT="${EFFORT:-}"
+LABEL="$MODEL${EFFORT:+@$EFFORT}"   # 결과 폴더·요약 표의 모델 이름 (effort를 주면 <모델>@<effort>)
+
 start_run() {  # 실행 폴더 만들기 + 메타 정보
-  RUN_DIR="$EVAL/runs/$STAGE/$MODEL/run$RUN"
+  RUN_DIR="$EVAL/runs/$STAGE/$LABEL/run$RUN"
   if [ -e "$RUN_DIR" ]; then
     echo "[eval] 이미 있습니다: $RUN_DIR — 회차 번호를 바꾸거나 지우십시오" >&2
     exit 1
@@ -45,15 +52,18 @@ start_run() {  # 실행 폴더 만들기 + 메타 정보
   STARTED=$(date +%s)
   cat > "$RUN_DIR/meta.env" <<EOF
 STAGE=$STAGE
-MODEL=$MODEL
+MODEL=$LABEL
+BASE_MODEL=$MODEL
+EFFORT=$EFFORT
 RUN=$RUN
 MAPPING_MODEL=${MAPPING_MODEL:-}
+MAPPING_EFFORT=${MAPPING_EFFORT:-}
 SOURCE=${SOURCE:-}
 SNAPSHOT_AT=$SNAPSHOT_AT
 GIT_COMMIT=$(git -C "$ROOT" rev-parse --short HEAD 2>/dev/null || echo -)
 STARTED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 EOF
-  echo "[eval] $STAGE / $MODEL / run$RUN → $RUN_DIR"
+  echo "[eval] $STAGE / $LABEL / run$RUN → $RUN_DIR"
 }
 
 finish_run() {
@@ -73,15 +83,17 @@ provider_of() {
 }
 
 # 역할(INVESTIGATION/MAPPING)과 모델로 넘길 환경변수 목록을 만든다. 비교 중에는 거절 재요청을 끈다(Claude만 해당).
-role_env() {  # $1=역할, $2=모델
-  local role="$1" model="$2" provider
+# effort는 비어 있어도 항상 넘긴다(빈 값 = 모델 기본값) — .env에 적힌 effort가 비교 실행에 섞이지 않게.
+role_env() {  # $1=역할, $2=모델, $3=effort(없으면 빈 값)
+  local role="$1" model="$2" effort="${3:-}" provider
   provider="$(provider_of "$model")"
   if [ "$provider" = openai ]; then
-    echo "${role}_LLM_PROVIDER=openai ${role}_OPENAI_MODEL=$model"
+    echo "${role}_LLM_PROVIDER=openai ${role}_OPENAI_MODEL=$model ${role}_OPENAI_REASONING_EFFORT=$effort"
   elif [ "$provider" = gemini ]; then
+    [ -z "$effort" ] || echo "[eval] Gemini는 effort를 지원하지 않아 무시합니다: $effort" >&2
     echo "${role}_LLM_PROVIDER=gemini ${role}_GEMINI_MODEL=$model"
   else
-    echo "${role}_LLM_PROVIDER=anthropic ${role}_CLAUDE_MODEL=$model ${role}_CLAUDE_REFUSAL_FALLBACK_MODEL=none"
+    echo "${role}_LLM_PROVIDER=anthropic ${role}_CLAUDE_MODEL=$model ${role}_CLAUDE_REFUSAL_FALLBACK_MODEL=none ${role}_CLAUDE_EFFORT=$effort"
   fi
 }
 
@@ -97,6 +109,7 @@ case "$STAGE" in
   triage)
     need_model
     [ "$(provider_of "$MODEL")" = anthropic ] || { echo "[eval] 트리아지는 Claude 모델만 지원합니다: $MODEL" >&2; exit 1; }
+    [ -z "$EFFORT" ] || { echo "[eval] 트리아지(llm_review.py)는 아직 effort 설정이 없습니다" >&2; exit 1; }
     start_run
     TRIAGE_CLAUDE_MODEL="$MODEL" \
       "$PYTHON" -u "$ROOT/run_pipeline.py" "${DETECT_ARGS[@]}" --show 0 \
@@ -111,7 +124,7 @@ case "$STAGE" in
     # main.py는 실행 폴더 아래 results/에 저장하므로 실행 폴더에서 돌린다
     # shellcheck disable=SC2046  # role_env는 공백으로 나뉜 NAME=값 목록(값에 공백 없음)
     (cd "$RUN_DIR" && \
-      env $(role_env INVESTIGATION "$MODEL") $(role_env MAPPING "$MAPPING_MODEL") \
+      env $(role_env INVESTIGATION "$MODEL" "$EFFORT") $(role_env MAPPING "$MAPPING_MODEL" "${MAPPING_EFFORT:-}") \
       "$PYTHON" -u "$ROOT/llm/investigate/main.py" "$EVAL/incidents/eval_set.jsonl" 2>&1 | tee run.log)
     finish_run
     ;;
@@ -124,7 +137,7 @@ case "$STAGE" in
     # 매핑 CLI는 llm/investigate에서 모듈로 실행한다. 입력·출력은 절대경로
     # shellcheck disable=SC2046
     (cd "$ROOT/llm/investigate" && \
-      env $(role_env MAPPING "$MODEL") \
+      env $(role_env MAPPING "$MODEL" "$EFFORT") \
       "$PYTHON" -u -m attack_mapping.cli --all-in-dir "$INPUT" --out-dir "$RUN_DIR/attack_mapping" \
       2>&1 | tee "$RUN_DIR/run.log") || true   # 일부 사건 매핑 오류면 CLI가 1로 끝난다 — 요약에서 본다
     finish_run
