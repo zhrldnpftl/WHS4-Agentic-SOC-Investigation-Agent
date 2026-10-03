@@ -17,7 +17,9 @@
 #           <역할>_OPENAI_REASONING_EFFORT로 넘김. 결과 폴더는 <모델>@<effort>로 나뉜다. 비우면 모델 기본값),
 #           MAPPING_EFFORT(investigation 단계의 고정 매핑 모델 effort). .env에 적힌 effort는 비교에 끼어들지 않는다.
 #           THINKING_BUDGET(Claude 생각 예산 토큰 — effort를 받지 않는 Haiku 4.5에서 생각을 켤 때, 결과 폴더 @think<N>),
-#           NAME(결과 폴더·요약 표에 쓸 설정 이름 — 주면 <모델>@<effort> 대신 이 이름. run_matrix.py가 yaml의 name을 넘김)
+#           NAME(결과 폴더·요약 표에 쓸 설정 이름 — 주면 <모델>@<effort> 대신 이 이름. run_matrix.py가 yaml의 name을 넘김),
+#           INCIDENTS(investigation만: 평가 사건 중 이 사건들만, 쉼표 구분 — 미완료 사건을 다시 돌릴 때.
+#           결과는 NAME을 따로 줘서 다른 폴더에 받은 뒤 원래 실행 폴더로 옮겨 합친다 — eval/README 참고)
 #   예: EFFORT=low bash eval/run_eval.sh investigation claude-sonnet-5-5 1
 #   여러 설정을 한 번에: python eval/run_matrix.py <단계> (eval/models.yaml)
 set -euo pipefail
@@ -128,11 +130,26 @@ case "$STAGE" in
     MAPPING_MODEL="${MAPPING_MODEL:-claude-haiku-4-5}"
     [ -f "$EVAL/incidents/eval_set.jsonl" ] || { echo "[eval] eval/incidents/eval_set.jsonl 없음 — eval_tool.py pick" >&2; exit 1; }
     start_run
+    INPUT_SET="$EVAL/incidents/eval_set.jsonl"
+    if [ -n "${INCIDENTS:-}" ]; then   # 일부 사건만: 실행 폴더에 골라 담은 입력을 만든다
+      INPUT_SET="$RUN_DIR/eval_subset.jsonl"
+      echo "INCIDENTS=$INCIDENTS" >> "$RUN_DIR/meta.env"
+      "$PYTHON" - "$EVAL/incidents/eval_set.jsonl" "$INPUT_SET" "$INCIDENTS" <<'PY'
+import json, sys
+src, dst, ids = sys.argv[1], sys.argv[2], {i.strip() for i in sys.argv[3].split(",") if i.strip()}
+rows = [l for l in open(src, encoding="utf-8") if l.strip() and json.loads(l).get("incident_id") in ids]
+found = {json.loads(l)["incident_id"] for l in rows}
+if ids - found:
+    sys.exit(f"[eval] 평가 사건에 없는 id: {', '.join(sorted(ids - found))}")
+open(dst, "w", encoding="utf-8").writelines(rows)
+print(f"[eval] 평가 사건 중 {len(rows)}건만 실행")
+PY
+    fi
     # main.py는 실행 폴더 아래 results/에 저장하므로 실행 폴더에서 돌린다
     # shellcheck disable=SC2046  # role_env는 공백으로 나뉜 NAME=값 목록(값에 공백 없음)
     (cd "$RUN_DIR" && \
       env $(role_env INVESTIGATION "$MODEL" "$EFFORT" "$THINKING_BUDGET") $(role_env MAPPING "$MAPPING_MODEL" "${MAPPING_EFFORT:-}") \
-      "$PYTHON" -u "$ROOT/llm/investigate/main.py" "$EVAL/incidents/eval_set.jsonl" 2>&1 | tee run.log)
+      "$PYTHON" -u "$ROOT/llm/investigate/main.py" "$INPUT_SET" 2>&1 | tee run.log)
     finish_run
     ;;
   mapping)

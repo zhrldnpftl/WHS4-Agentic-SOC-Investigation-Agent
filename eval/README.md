@@ -113,6 +113,15 @@ python eval/eval_tool.py summarize
 이미 있는 결과 폴더는 건너뛰므로, 중간에 멈추면 반쯤 찬 폴더만 지우고 같은 명령을 다시 실행하면 됩니다.
 한 설정이 실패해도 다음 설정으로 넘어가고 끝에 실패 목록을 보여 줍니다.
 
+### 미완료 사건만 다시 돌리기
+
+API 잔액 부족 등으로 일부 사건이 미완료(`llm_unavailable`)로 끝났으면 그 사건만 다른 폴더에 다시 돌린 뒤 옮겨 합칩니다.
+
+```bash
+INCIDENTS=INC-aaaa,INC-bbbb EFFORT=high NAME=gpt54-high-retry \
+  bash eval/run_eval.sh investigation gpt-5.4-2026-03-05 1
+```
+
 ## GPT 모델 비교
 
 `run_eval.sh`는 모델 이름이 `gpt-*` 또는 `o<숫자>*`이면 OpenAI(GPT)로, 그 밖은 Claude로 넘깁니다
